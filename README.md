@@ -71,5 +71,3 @@ medivault2nd/
 - XAMPP or similar (Apache + PHP + MySQL)
 - Modern web browser
 - 10GB disk space (recommended)
-
-
