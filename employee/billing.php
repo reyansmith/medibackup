@@ -1,18 +1,18 @@
 <?php
 
-session_start();
 
+// start session
+session_start();
+// check employee login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "employee") {
     header("Location: ../auth/login.php");
     exit();
 }
-
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../includes/session_audit.php";
-
+// check session
 ensureEmployeeSessionAudit($conn);
-
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $bill_generated = false;
 $error = "";

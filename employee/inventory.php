@@ -1,16 +1,20 @@
 <?php
 
+
+// Start session and check employee login
 session_start();
 require_once __DIR__ . "/../config/database.php";
-
-// Employee login check
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'employee') {
+    // Redirect to login if not employee
     header("Location: ../auth/login.php");
     exit();
 }
 
+
+// Section: products or stock
 $section = isset($_GET['section']) ? $_GET['section'] : "products";
 
+// Product search and sort
 $search = "";
 $sortBy = isset($_GET['sort_by']) ? $_GET['sort_by'] : "id";
 $allowedSortBy = array("id", "name");
@@ -20,6 +24,8 @@ if (!in_array($sortBy, $allowedSortBy, true)) {
 $orderColumn = $sortBy === "name" ? "p.medicine_name" : "p.medicine_id";
 $orderDirection = "ASC";
 
+
+// Fetch products with optional search
 if (isset($_GET['search']) && $_GET['search'] !== "") {
     $search = $conn->real_escape_string($_GET['search']);
     $products = $conn->query("
@@ -41,8 +47,12 @@ if (isset($_GET['search']) && $_GET['search'] !== "") {
     ");
 }
 
+
+// Count products
 $productCount = ($products instanceof mysqli_result) ? $products->num_rows : 0;
 
+
+// Stock filters and sorting
 $stockStatusFilter = isset($_GET['stock_status']) ? $_GET['stock_status'] : "all";
 $allowedStockFilters = array("all", "in_stock", "low_stock", "out_of_stock", "expired");
 if (!in_array($stockStatusFilter, $allowedStockFilters, true)) {
@@ -60,6 +70,8 @@ if (isset($_GET['stock_search']) && $_GET['stock_search'] !== "") {
     $stockSearch = $conn->real_escape_string(trim($_GET['stock_search']));
 }
 
+
+// Map for stock sorting columns
 $stockOrderColumnMap = array(
     "stock_id" => "s.stock_id",
     "medicine" => "p.medicine_name",
@@ -71,6 +83,8 @@ $stockOrderColumnMap = array(
 $stockOrderColumn = $stockOrderColumnMap[$stockSortBy];
 $stockOrderDirection = "ASC";
 
+
+// Build stock filter conditions
 $stockConditions = array();
 if ($stockStatusFilter === "expired") {
     $stockConditions[] = "s.expiry_date < CURDATE()";
@@ -92,6 +106,7 @@ if ($stockSearch !== "") {
 
 $stockWhere = count($stockConditions) > 0 ? "WHERE " . implode(" AND ", $stockConditions) : "";
 
+// Fetch stocks with filters
 $stocks = $conn->query("
     SELECT s.*, p.medicine_name
     FROM stock s
@@ -100,8 +115,10 @@ $stocks = $conn->query("
     ORDER BY $stockOrderColumn $stockOrderDirection
 ");
 
+// Count stocks
 $stockCount = ($stocks instanceof mysqli_result) ? $stocks->num_rows : 0;
 
+// Helper function for stock status
 function stock_status($expiryDate, $quantity) {
     $today = date('Y-m-d');
     if ($expiryDate < $today) {
@@ -117,6 +134,8 @@ function stock_status($expiryDate, $quantity) {
 }
 ?>
 
+
+// Include header and sidebar
 <?php include __DIR__ . "/../includes/header.php"; ?>
 <?php include __DIR__ . "/../includes/sidebar.php"; ?>
 
@@ -259,4 +278,6 @@ function stock_status($expiryDate, $quantity) {
     <?php } ?>
 </div>
 
+
+// Include footer
 <?php include __DIR__ . "/../includes/footer.php"; ?>

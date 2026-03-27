@@ -1,38 +1,48 @@
 <?php
 
+
+// Start session and check employee login
 session_start();
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../includes/session_audit.php";
-
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "employee") {
+    // Redirect to login if not employee
     header("Location: ../auth/login.php");
     exit();
 }
-
+// Check session audit
 ensureEmployeeSessionAudit($conn);
 
+// Get employee id from session
 $empId = (string)$_SESSION['id'];
+
+// Get filter type (day, week, month)
 $filterType = $_GET['range'] ?? 'month';
 $allowedRanges = ['day', 'week', 'month'];
 if (!in_array($filterType, $allowedRanges, true)) {
     $filterType = 'month';
 }
 
+// Get selected day
 $selectedDay = $_GET['day'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDay)) {
     $selectedDay = date('Y-m-d');
 }
 
+// Get selected week
 $selectedWeek = $_GET['week'] ?? date('o-\WW');
 if (!preg_match('/^\d{4}-W\d{2}$/', $selectedWeek)) {
     $selectedWeek = date('o-\WW');
 }
 
+// Get selected month
 $selectedMonth = $_GET['month'] ?? date('Y-m');
 if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $selectedMonth)) {
     $selectedMonth = date('Y-m');
 }
 
+
+// Set date range and label for filter
 if ($filterType === 'day') {
     $startDate = $selectedDay;
     $endDate = $selectedDay;
@@ -54,14 +64,20 @@ if ($filterType === 'day') {
     $rangeLabel = date('F Y', strtotime($startDate));
 }
 
+
+// Initialize report variables
 $salesTotal = 0.0;
 $billCount = 0;
 $avgBill = 0.0;
 $paymentRows = [];
+
+// Initialize data arrays
 $dateSalesRows = [];
 $monthlyBillingRows = [];
 $recentBillRows = [];
 
+
+// Get sales summary for the period
 $summaryStmt = $conn->prepare("
     SELECT COALESCE(SUM(total_amount), 0) AS sales_total,
            COUNT(*) AS bill_count,
@@ -80,42 +96,48 @@ if ($summaryRow) {
 }
 $summaryStmt->close();
 
+
+// Get date-wise sales for the period
 $dateSalesStmt = $conn->prepare("
-    SELECT DATE(bill_date) AS sale_date,
-           COUNT(*) AS bill_count,
-           COALESCE(SUM(total_amount), 0) AS sales_total
-    FROM bill
-    WHERE emp_id = ?
-      AND DATE(bill_date) BETWEEN ? AND ?
-    GROUP BY DATE(bill_date)
-    ORDER BY DATE(bill_date) DESC
+        SELECT DATE(bill_date) AS sale_date,
+                     COUNT(*) AS bill_count,
+                     COALESCE(SUM(total_amount), 0) AS sales_total
+        FROM bill
+        WHERE emp_id = ?
+            AND DATE(bill_date) BETWEEN ? AND ?
+        GROUP BY DATE(bill_date)
+        ORDER BY DATE(bill_date) DESC
 ");
 $dateSalesStmt->bind_param("sss", $empId, $startDate, $endDate);
 $dateSalesStmt->execute();
 $dateSalesRes = $dateSalesStmt->get_result();
 while ($row = $dateSalesRes->fetch_assoc()) {
-    $dateSalesRows[] = $row;
+        $dateSalesRows[] = $row;
 }
 $dateSalesStmt->close();
 
+
+// Get payment method split for the period
 $paymentStmt = $conn->prepare("
-    SELECT COALESCE(payment_method, 'Unknown') AS payment_method,
-           COUNT(*) AS bill_count,
-           COALESCE(SUM(total_amount), 0) AS total_amount
-    FROM bill
-    WHERE emp_id = ?
-      AND DATE(bill_date) BETWEEN ? AND ?
-    GROUP BY payment_method
-    ORDER BY total_amount DESC
+        SELECT COALESCE(payment_method, 'Unknown') AS payment_method,
+                     COUNT(*) AS bill_count,
+                     COALESCE(SUM(total_amount), 0) AS total_amount
+        FROM bill
+        WHERE emp_id = ?
+            AND DATE(bill_date) BETWEEN ? AND ?
+        GROUP BY payment_method
+        ORDER BY total_amount DESC
 ");
 $paymentStmt->bind_param("sss", $empId, $startDate, $endDate);
 $paymentStmt->execute();
 $paymentRes = $paymentStmt->get_result();
 while ($row = $paymentRes->fetch_assoc()) {
-    $paymentRows[] = $row;
+        $paymentRows[] = $row;
 }
 $paymentStmt->close();
 
+
+// Get monthly billing report (last 6 months)
 $monthlyBillingStmt = $conn->prepare("
     SELECT DATE_FORMAT(bill_date, '%Y-%m') AS month_key,
            DATE_FORMAT(bill_date, '%b %Y') AS month_label,
@@ -135,22 +157,26 @@ while ($row = $monthlyBillingRes->fetch_assoc()) {
 }
 $monthlyBillingStmt->close();
 
+
+// Get recent bills for the period (max 15)
 $recentBillStmt = $conn->prepare("
-    SELECT bill_id, bill_date, customer_name, payment_method, total_amount
-    FROM bill
-    WHERE emp_id = ?
-      AND DATE(bill_date) BETWEEN ? AND ?
-    ORDER BY bill_date DESC
-    LIMIT 15
+        SELECT bill_id, bill_date, customer_name, payment_method, total_amount
+        FROM bill
+        WHERE emp_id = ?
+            AND DATE(bill_date) BETWEEN ? AND ?
+        ORDER BY bill_date DESC
+        LIMIT 15
 ");
 $recentBillStmt->bind_param("sss", $empId, $startDate, $endDate);
 $recentBillStmt->execute();
 $recentBillRes = $recentBillStmt->get_result();
 while ($row = $recentBillRes->fetch_assoc()) {
-    $recentBillRows[] = $row;
+        $recentBillRows[] = $row;
 }
 $recentBillStmt->close();
 
+
+// Prepare data for payment and sales charts
 $paymentLabels = [];
 $paymentValues = [];
 foreach ($paymentRows as $row) {
@@ -174,6 +200,7 @@ if (empty($dateSalesLabels)) {
 }
 
 
+// Include header and sidebar
 include __DIR__ . "/../includes/header.php";
 include __DIR__ . "/../includes/sidebar.php";
 ?>
@@ -368,6 +395,8 @@ include __DIR__ . "/../includes/sidebar.php";
     </div>
 </div>
 
+
+// Include footer
 <?php include __DIR__ . "/../includes/footer.php"; ?>
 
 <script>

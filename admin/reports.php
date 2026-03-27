@@ -1,35 +1,39 @@
 <?php
 
+
+// start session
 session_start();
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 
-// Allow only admin to open reports page.
+// check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     header("Location: ../auth/login.php");
     exit();
 }
 
+// get filter type
 $filterType = $_GET['range'] ?? 'month';
 $allowedRanges = ['day', 'week', 'month'];
 if (!in_array($filterType, $allowedRanges, true)) {
     $filterType = 'month';
 }
 
+// get selected day/week/month
 $selectedDay = $_GET['day'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDay)) {
     $selectedDay = date('Y-m-d');
 }
-
 $selectedWeek = $_GET['week'] ?? date('o-\\WW');
 if (!preg_match('/^\d{4}-W\d{2}$/', $selectedWeek)) {
     $selectedWeek = date('o-\\WW');
 }
-
 $selectedMonth = $_GET['month'] ?? date('Y-m');
 if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $selectedMonth)) {
     $selectedMonth = date('Y-m');
 }
 
+// set date range
 if ($filterType === 'day') {
     $startDate = $selectedDay;
     $endDate = $selectedDay;
@@ -38,12 +42,11 @@ if ($filterType === 'day') {
     [$weekYear, $weekNumber] = array_pad(explode('-W', $selectedWeek), 2, '');
     $weekYear = ctype_digit($weekYear) ? (int)$weekYear : (int)date('o');
     $weekNumber = ctype_digit($weekNumber) ? (int)$weekNumber : (int)date('W');
-
     $weekStart = (new DateTimeImmutable())->setISODate($weekYear, $weekNumber, 1);
     $weekEnd = $weekStart->modify('+6 days');
     $startDate = $weekStart->format('Y-m-d');
     $endDate = $weekEnd->format('Y-m-d');
-    $selectedWeek = $weekStart->format('o-\WW');
+    $selectedWeek = $weekStart->format('o-\\WW');
     $rangeLabel = $weekStart->format('d M') . ' - ' . $weekEnd->format('d M Y');
 } else {
     $startDate = $selectedMonth . '-01';

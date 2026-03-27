@@ -1,8 +1,10 @@
 <?php
 
+// Get current page and directory
 $currentPage = basename($_SERVER['PHP_SELF'] ?? '');
 $currentDir = basename(dirname($_SERVER['PHP_SELF'] ?? ''));
 $appArea = in_array($currentDir, ['admin', 'employee'], true) ? $currentDir : 'root';
+// Get logged in user info
 $loggedName = isset($_SESSION['username']) && $_SESSION['username'] !== ''
     ? (string)$_SESSION['username']
     : 'Unknown';
@@ -11,18 +13,18 @@ $loggedRoleRaw = isset($_SESSION['role']) && $_SESSION['role'] !== ''
     : 'user';
 $loggedRole = ucfirst($loggedRoleRaw);
 
+// Helper for sidebar link path
 function navLinkPath($fileName, $role, $appArea) {
     if ($role === 'employee') {
         return $appArea === 'employee' ? $fileName : 'employee/' . $fileName;
     }
-
     if ($role === 'admin') {
         return $appArea === 'admin' ? $fileName : 'admin/' . $fileName;
     }
-
     return $fileName;
 }
 
+// Sidebar navigation items
 $navItems = [];
 if ($loggedRoleRaw === 'employee') {
     $navItems = [

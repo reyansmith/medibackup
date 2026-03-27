@@ -1,70 +1,66 @@
 <?php
 
+
+// start session
 session_start();
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 
-// Only admin can access this page.
+// check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     header("Location: ../auth/login.php");
     exit();
 }
 
-// These variables store the page message and edit state.
 $message = "";
 $is_error = false;
 $edit_vendor = null;
 
-// This block handles add, update, and remove actions.
+// handle add, update, remove
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // add vendor
     if (isset($_POST['add_vendor'])) {
-        // Read form values.
         $vendor_id = trim((string)($_POST['vendor_id'] ?? ''));
         $name = trim((string)($_POST['name'] ?? ''));
         $phone = trim((string)($_POST['phone'] ?? ''));
         $address = trim((string)($_POST['address'] ?? ''));
-
-        // Phone number must be 10 digits.
         if (!preg_match('/^\d{10}$/', $phone)) {
-            $message = "Please enter a valid 10-digit phone number.";
+            $message = "Enter valid 10-digit phone.";
             $is_error = true;
         } else {
-            // Save the new vendor.
             $stmt = $conn->prepare("INSERT INTO vendor (vendor_id, name, phone, address) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("ssss", $vendor_id, $name, $phone, $address);
             if ($stmt->execute()) {
-                $message = "Vendor added successfully!";
+                $message = "Vendor added.";
             } else {
-                $message = "Could not add the vendor. Please check the details and try again.";
+                $message = "Could not add vendor.";
                 $is_error = true;
             }
             $stmt->close();
         }
     }
-
-    // Update an existing vendor.
+    // update vendor
     if (isset($_POST['update_vendor'])) {
         $vendor_id = trim((string)($_POST['vendor_id'] ?? ''));
         $name = trim((string)($_POST['name'] ?? ''));
         $phone = trim((string)($_POST['phone'] ?? ''));
         $address = trim((string)($_POST['address'] ?? ''));
-
         if (!preg_match('/^\d{10}$/', $phone)) {
-            $message = "Please enter a valid 10-digit phone number.";
+            $message = "Enter valid 10-digit phone.";
             $is_error = true;
         } else {
             $stmt = $conn->prepare("UPDATE vendor SET name = ?, phone = ?, address = ? WHERE vendor_id = ?");
             $stmt->bind_param("ssss", $name, $phone, $address, $vendor_id);
             if ($stmt->execute()) {
-                $message = "Vendor updated successfully!";
+                $message = "Vendor updated.";
             } else {
-                $message = "Could not update the vendor. Please try again.";
+                $message = "Could not update vendor.";
                 $is_error = true;
             }
             $stmt->close();
         }
     }
-
-    // Remove a vendor only if no purchase is linked to it.
+    // remove vendor (only if not linked)
     if (isset($_POST['remove_vendor'])) {
         $vendor_id = $_POST['remove_vendor_id'];
         try {
@@ -74,30 +70,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $ref_res = $ref_stmt->get_result();
             $ref_row = $ref_res ? $ref_res->fetch_assoc() : null;
             $ref_stmt->close();
-
             $linked_count = (int)($ref_row['cnt'] ?? 0);
             if ($linked_count > 0) {
-                $message = "This vendor cannot be removed because it is linked to " . $linked_count . " purchase record.";
+                $message = "Vendor linked to purchase.";
                 $is_error = true;
             } else {
                 $stmt = $conn->prepare("DELETE FROM vendor WHERE vendor_id = ?");
                 $stmt->bind_param("s", $vendor_id);
                 if ($stmt->execute()) {
-                    $message = "Vendor removed successfully!";
+                    $message = "Vendor removed.";
                 } else {
-                    $message = "Could not remove the vendor right now. Please try again.";
+                    $message = "Could not remove vendor.";
                     $is_error = true;
                 }
                 $stmt->close();
             }
         } catch (mysqli_sql_exception $e) {
-            $message = "This vendor cannot be removed because related records still exist.";
+            $message = "Vendor has related records.";
             $is_error = true;
         }
     }
 }
 
-// Load vendor details when the edit button is clicked.
+// load vendor for edit
 if (isset($_GET['edit']) && $_GET['edit'] !== "") {
     $edit_id = $_GET['edit'];
     $stmt = $conn->prepare("SELECT vendor_id, name, phone, address FROM vendor WHERE vendor_id = ? LIMIT 1");
@@ -110,7 +105,7 @@ if (isset($_GET['edit']) && $_GET['edit'] !== "") {
     $stmt->close();
 }
 
-// Get all vendors for the table.
+// get all vendors
 $vendors = [];
 $result = $conn->query("SELECT vendor_id, name, phone, address FROM vendor ORDER BY name ASC");
 if ($result) {

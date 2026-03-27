@@ -1,34 +1,32 @@
 <?php
 
+
+// start session
 session_start();
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 
+// check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     header("Location: ../auth/login.php");
     exit();
 }
 
-$sql = "
-SELECT p.purchase_id, p.vendor_id, p.purchase_date, 
-       IFNULL(SUM(pd.quantity * pd.cost_price),0) AS total_amount
-FROM purchase p
-LEFT JOIN purchase_details pd ON pd.purchase_id = p.purchase_id
-GROUP BY p.purchase_id, p.vendor_id, p.purchase_date
-ORDER BY p.purchase_date DESC, p.purchase_id DESC
-";
-
+// get purchases
+$sql = "SELECT p.purchase_id, p.vendor_id, p.purchase_date, IFNULL(SUM(pd.quantity * pd.cost_price),0) AS total_amount FROM purchase p LEFT JOIN purchase_details pd ON pd.purchase_id = p.purchase_id GROUP BY p.purchase_id, p.vendor_id, p.purchase_date ORDER BY p.purchase_date DESC, p.purchase_id DESC";
 $result = $conn->query($sql);
 $purchases = [];
-if($result){
-    while($row = $result->fetch_assoc()){
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
         $purchases[] = $row;
     }
 }
 
+// get vendors
 $vendor_result = $conn->query("SELECT vendor_id, name FROM vendor");
 $vendors = [];
-if($vendor_result){
-    while($v = $vendor_result->fetch_assoc()){
+if ($vendor_result) {
+    while ($v = $vendor_result->fetch_assoc()) {
         $vendors[$v['vendor_id']] = $v['name'];
     }
 }

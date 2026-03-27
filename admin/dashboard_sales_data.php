@@ -1,15 +1,20 @@
 <?php
 
+
+// start session
 session_start();
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 
+// check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     http_response_code(403);
     header("Content-Type: application/json; charset=UTF-8");
-    echo json_encode(["error" => "Unauthorized"]);
+    echo json_encode(["error" => "Not allowed"]);
     exit();
 }
 
+// get last 7 days
 $today = new DateTimeImmutable("today");
 $startDate = $today->modify("-6 days")->format("Y-m-d");
 $endDate = $today->format("Y-m-d");
@@ -25,14 +30,8 @@ for ($i = 6; $i >= 0; $i--) {
     $values[] = 0;
 }
 
-// Single query for the whole range; avoids N+1 query pattern.
-$stmt = $conn->prepare(
-    "SELECT DATE(bill_date) AS day, SUM(total_amount) AS total
-     FROM bill
-     WHERE DATE(bill_date) BETWEEN ? AND ?
-     GROUP BY DATE(bill_date)"
-);
-
+// get sales for each day
+$stmt = $conn->prepare("SELECT DATE(bill_date) AS day, SUM(total_amount) AS total FROM bill WHERE DATE(bill_date) BETWEEN ? AND ? GROUP BY DATE(bill_date)");
 if ($stmt) {
     $stmt->bind_param("ss", $startDate, $endDate);
     $stmt->execute();
@@ -43,14 +42,12 @@ if ($stmt) {
         while ($row = $result->fetch_assoc()) {
             $totalsByDate[$row['day']] = (float)($row['total'] ?? 0);
         }
-
         foreach ($labelDates as $index => $date) {
             if (isset($totalsByDate[$date])) {
                 $values[$index] = $totalsByDate[$date];
             }
         }
     }
-
     $stmt->close();
 }
 

@@ -1,9 +1,12 @@
 <?php
 
+
+// start session
 session_start();
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 
-// Admin login check
+// check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../auth/login.php");
     exit();
@@ -12,10 +15,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 $msg = "";
 $msgType = "success";
 
+// handle form actions
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = isset($_POST['action']) ? $_POST['action'] : "";
 
-    // EDIT PRODUCT
+    // update product
     if ($action === "save_product") {
         $id = isset($_POST['medicine_id']) ? trim($_POST['medicine_id']) : "";
         $name = isset($_POST['medicine_name']) ? trim($_POST['medicine_name']) : "";
@@ -39,12 +43,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmt->bind_param("sss", $name, $desc, $id);
                 $stmt->execute();
                 $stmt->close();
-                $msg = "Medicine updated successfully.";
+                $msg = "Medicine updated.";
             }
         }
     }
 
-    // DELETE PRODUCT (ONLY IF NO STOCK ENTRIES)
+    // delete product (only if no stock)
     if ($action === "delete_product") {
         $id = isset($_POST['medicine_id']) ? trim($_POST['medicine_id']) : "";
 
@@ -59,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $check->close();
 
             if ((int)$result['cnt'] > 0) {
-                $msg = "Cannot delete medicine with stock entries. Remove related stock first.";
+                $msg = "Cannot delete medicine with stock. Remove stock first.";
                 $msgType = "error";
             } else {
                 $del = $conn->prepare("DELETE FROM product WHERE medicine_id=?");
@@ -69,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $del->close();
 
                 if ($deleted > 0) {
-                    $msg = "Medicine deleted successfully.";
+                    $msg = "Medicine deleted.";
                 } else {
                     $msg = "Medicine not found.";
                     $msgType = "error";
@@ -78,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    // EDIT STOCK
+    // update stock
     if ($action === "edit_stock") {
         $stockId = isset($_POST['stock_id']) ? trim($_POST['stock_id']) : "";
         $batch = isset($_POST['batch_no']) ? trim($_POST['batch_no']) : "";
@@ -90,19 +94,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $msg = "Invalid stock entry.";
             $msgType = "error";
         } else {
-            $stmt = $conn->prepare("
-                UPDATE stock 
-                SET batch_no=?, expiry_date=?, quantity=?, selling_price=?
-                WHERE stock_id=?
-            ");
+            $stmt = $conn->prepare("UPDATE stock SET batch_no=?, expiry_date=?, quantity=?, selling_price=? WHERE stock_id=?");
             $stmt->bind_param("ssids", $batch, $expiry, $qty, $price, $stockId);
             $stmt->execute();
             $stmt->close();
-            $msg = "Stock updated successfully.";
+            $msg = "Stock updated.";
         }
     }
 
-    // DELETE STOCK (ONLY IF EXPIRED)
+    // delete stock (only if expired)
     if ($action === "delete_stock") {
         $id = isset($_POST['stock_id']) ? trim($_POST['stock_id']) : "";
 
@@ -114,18 +114,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $checkStmt->close();
 
         if (!$stockRow) {
-            $msg = "Stock item not found.";
+            $msg = "Stock not found.";
             $msgType = "error";
-        // Expiry rule: allow delete only if stock is already expired.
         } elseif (strtotime($stockRow['expiry_date']) >= strtotime(date('Y-m-d'))) {
-            $msg = "Only expired stock can be deleted from inventory.";
+            $msg = "Only expired stock can be deleted.";
             $msgType = "error";
         } else {
             $delStmt = $conn->prepare("DELETE FROM stock WHERE stock_id=?");
             $delStmt->bind_param("s", $id);
             $delStmt->execute();
             $delStmt->close();
-            $msg = "Expired stock deleted successfully.";
+            $msg = "Expired stock deleted.";
         }
     }
 }

@@ -1,86 +1,64 @@
 <?php
 
+// start session
 session_start();
+// connect to database
 require_once __DIR__ . "/../config/database.php";
 
-/* -------- SESSION PROTECTION -------- */
-if(!isset($_SESSION['role']) || $_SESSION['role'] != "admin"){
+// check if admin is logged in
+if (!isset($_SESSION['role']) || $_SESSION['role'] != "admin") {
     header("Location: ../auth/login.php");
     exit();
 }
 
-/* -------- DASHBOARD QUERIES -------- */
-
-// Low Stock (<10)
+// get low stock count (less than 10)
 $lowStock = 0;
-$result = $conn->query("SELECT COUNT(*) as total FROM stock WHERE quantity < 10");
-if($result){
-    $row = $result->fetch_assoc();
+$q = $conn->query("SELECT COUNT(*) as total FROM stock WHERE quantity < 10");
+if ($q) {
+    $row = $q->fetch_assoc();
     $lowStock = $row['total'];
 }
 
-// Expiring in 30 Days
-// This counts near-expiry stock items for dashboard alert card.
+// get expiring soon count (next 30 days)
 $expiring = 0;
-$result = $conn->query("SELECT COUNT(*) as total FROM stock WHERE expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)");
-if($result){
-    $row = $result->fetch_assoc();
+$q = $conn->query("SELECT COUNT(*) as total FROM stock WHERE expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)");
+if ($q) {
+    $row = $q->fetch_assoc();
     $expiring = $row['total'];
 }
 
-// Today's Sales
+// get today's sales
 $sales = 0;
-$result = $conn->query("SELECT SUM(total_amount) as total FROM bill WHERE DATE(bill_date)=CURDATE()");
-if($result){
-    $row = $result->fetch_assoc();
+$q = $conn->query("SELECT SUM(total_amount) as total FROM bill WHERE DATE(bill_date)=CURDATE()");
+if ($q) {
+    $row = $q->fetch_assoc();
     $sales = $row['total'] ?? 0;
 }
 
-// Today's Bills Count
+// get today's bills count
 $todayBills = 0;
-$result = $conn->query("SELECT COUNT(*) as total FROM bill WHERE DATE(bill_date)=CURDATE()");
-if($result){
-    $row = $result->fetch_assoc();
+$q = $conn->query("SELECT COUNT(*) as total FROM bill WHERE DATE(bill_date)=CURDATE()");
+if ($q) {
+    $row = $q->fetch_assoc();
     $todayBills = $row['total'];
 }
 
-// Leaderboard (Last 30 Days)
+// get top employees (last 30 days)
 $leaderboard = [];
-$leaderboardSql = "
-    SELECT e.username AS employee_name,
-           COUNT(b.bill_id) AS bill_count,
-           COALESCE(SUM(b.total_amount), 0) AS total_sales
-    FROM employee e
-    LEFT JOIN bill b
-        ON b.emp_id = e.emp_id
-       AND DATE(b.bill_date) BETWEEN DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND CURDATE()
-    GROUP BY e.emp_id, e.username
-    ORDER BY total_sales DESC, bill_count DESC, e.username ASC
-    LIMIT 5
-";
-$result = $conn->query($leaderboardSql);
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
+$sql = "SELECT e.username AS employee_name, COUNT(b.bill_id) AS bill_count, COALESCE(SUM(b.total_amount), 0) AS total_sales FROM employee e LEFT JOIN bill b ON b.emp_id = e.emp_id AND DATE(b.bill_date) BETWEEN DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND CURDATE() GROUP BY e.emp_id, e.username ORDER BY total_sales DESC, bill_count DESC, e.username ASC LIMIT 5";
+$q = $conn->query($sql);
+if ($q) {
+    while ($row = $q->fetch_assoc()) {
         $leaderboard[] = $row;
     }
 }
 
-// Recent Transactions
+// get recent transactions
 $recentTransactions = [];
-$recentTransactionsSql = "
-    SELECT b.bill_id,
-           b.bill_date,
-           b.customer_name,
-           b.total_amount,
-           e.username AS employee_name
-    FROM bill b
-    LEFT JOIN employee e ON e.emp_id = b.emp_id
-    ORDER BY b.bill_date DESC
-    LIMIT 8
-";
-$result = $conn->query($recentTransactionsSql);
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
+$sql = "SELECT b.bill_id, b.bill_date, b.customer_name, b.total_amount, e.username AS employee_name FROM bill b LEFT JOIN employee e ON e.emp_id = b.emp_id ORDER BY b.bill_date DESC LIMIT 8";
+$q = $conn->query($sql);
+if ($q) {
+    while ($row = $q->fetch_assoc()) {
         $recentTransactions[] = $row;
     }
 }

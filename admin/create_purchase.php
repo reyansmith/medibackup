@@ -1,81 +1,81 @@
 <?php
 
+
+// start session
 session_start();
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 
-// Only admin can add new purchases.
-if(!isset($_SESSION['role']) || $_SESSION['role'] !== "admin"){
+// check admin login
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     header("Location: ../auth/login.php");
     exit();
 }
 
 $message = "";
 $error = "";
-$loggedAdminId = (string)($_SESSION['id'] ?? '');
-$loggedAdminName = (string)($_SESSION['username'] ?? 'Admin');
+$adminId = (string)($_SESSION['id'] ?? '');
+$adminName = (string)($_SESSION['username'] ?? 'Admin');
 
-// Auto-generate purchase id like PUR001, PUR002, ...
-$result = $conn->query("SELECT MAX(CAST(SUBSTRING(purchase_id,4) AS UNSIGNED)) AS max_id FROM purchase");
-$row = $result->fetch_assoc();
+// get new purchase id
+$q = $conn->query("SELECT MAX(CAST(SUBSTRING(purchase_id,4) AS UNSIGNED)) AS max_id FROM purchase");
+$row = $q->fetch_assoc();
 $number = ($row['max_id'] !== NULL) ? ((int)$row['max_id'] + 1) : 1;
 $purchase_id = "PUR" . str_pad((string)$number, 3, "0", STR_PAD_LEFT);
 
-if($_SERVER['REQUEST_METHOD'] === 'POST'){
-
-    // Read main purchase form values.
+// handle form submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // get form values
     $vendor_id = trim((string)($_POST['vendor_id'] ?? ''));
     $purchase_date = trim((string)($_POST['purchase_date'] ?? ''));
 
-    if($vendor_id === '' || $purchase_date === ''){
+    if ($vendor_id === '' || $purchase_date === '') {
         $error = "Vendor and Date required.";
     } else {
-
         $total_amount = 0;
 
-        // Insert purchase header first. Total is updated after line items.
+        // insert purchase
         $stmt = $conn->prepare("INSERT INTO purchase (purchase_id, vendor_id, purchase_date, total_amount) VALUES (?,?,?,0)");
         $stmt->bind_param("sss", $purchase_id, $vendor_id, $purchase_date);
         $stmt->execute();
         $stmt->close();
 
-        $res2 = $conn->query("SELECT MAX(CAST(SUBSTRING(purchase_detail_id,3) AS UNSIGNED)) AS max_id FROM purchase_details");
-        $row2 = $res2->fetch_assoc();
+        $q2 = $conn->query("SELECT MAX(CAST(SUBSTRING(purchase_detail_id,3) AS UNSIGNED)) AS max_id FROM purchase_details");
+        $row2 = $q2->fetch_assoc();
         $detail_number = ($row2['max_id'] !== NULL) ? ((int)$row2['max_id'] + 1) : 1;
 
-        foreach($_POST['medicine_name'] as $i => $med_name){
-            // Read each purchase row (medicine, qty, price, batch, expiry).
+        foreach ($_POST['medicine_name'] as $i => $med_name) {
+            // get each row
             $med_name = trim((string)$med_name);
             $description = trim((string)($_POST['description'][$i] ?? ''));
-            $admin_id = $loggedAdminId;
             $quantity = (int)($_POST['quantity'][$i] ?? 0);
             $cost_price = (float)($_POST['cost_price'][$i] ?? 0);
             $batch_no = trim((string)($_POST['batch_no'][$i] ?? ''));
             $expiry_date = trim((string)($_POST['expiry_date'][$i] ?? ''));
             $selling_price = (float)($_POST['selling_price'][$i] ?? 0);
 
-            if($med_name === '' || $description === '' || $batch_no === '' || $expiry_date === '' || $admin_id === ''){
-                $error = "All purchase detail fields are required.";
+            if ($med_name === '' || $description === '' || $batch_no === '' || $expiry_date === '' || $adminId === '') {
+                $error = "All fields required.";
                 break;
             }
-
-            if($quantity <= 0 || $cost_price <= 0 || $selling_price <= 0){
+            if ($quantity <= 0 || $cost_price <= 0 || $selling_price <= 0) {
                 $error = "Invalid quantity or price.";
                 break;
             }
 
+            // check if medicine exists
             $check_product = $conn->prepare("SELECT medicine_id FROM product WHERE medicine_name=?");
             $check_product->bind_param("s", $med_name);
             $check_product->execute();
             $product_result = $check_product->get_result();
 
-            if($product_result->num_rows > 0){
-                // If medicine already exists, reuse existing medicine_id.
+            if ($product_result->num_rows > 0) {
                 $prod_row = $product_result->fetch_assoc();
                 $medicine_id = $prod_row['medicine_id'];
             } else {
-                // If medicine is new, create it in product table.
-                $resP = $conn->query("SELECT MAX(CAST(SUBSTRING(medicine_id,2) AS UNSIGNED)) AS max_id FROM product");
-                $rowP = $resP->fetch_assoc();
+                // new medicine
+                $qP = $conn->query("SELECT MAX(CAST(SUBSTRING(medicine_id,2) AS UNSIGNED)) AS max_id FROM product");
+                $rowP = $qP->fetch_assoc();
                 $numP = ($rowP['max_id'] !== NULL) ? ((int)$rowP['max_id'] + 1) : 1;
                 $medicine_id = "P" . str_pad((string)$numP, 3, "0", STR_PAD_LEFT);
 
@@ -90,18 +90,19 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $subtotal = $quantity * $cost_price;
             $total_amount += $subtotal;
 
+            // insert purchase detail
             $stmt2 = $conn->prepare("INSERT INTO purchase_details (purchase_detail_id, purchase_id, medicine_id, admin_id, quantity, cost_price) VALUES (?,?,?,?,?,?)");
-            $stmt2->bind_param("sssidd", $detail_id, $purchase_id, $medicine_id, $admin_id, $quantity, $cost_price);
+            $stmt2->bind_param("sssidd", $detail_id, $purchase_id, $medicine_id, $adminId, $quantity, $cost_price);
             $stmt2->execute();
             $stmt2->close();
 
+            // check stock
             $check_stock = $conn->prepare("SELECT stock_id, quantity FROM stock WHERE medicine_id=? AND batch_no=?");
             $check_stock->bind_param("ss", $medicine_id, $batch_no);
             $check_stock->execute();
             $stock_result = $check_stock->get_result();
 
-            if($stock_result->num_rows > 0){
-                // Same batch exists: increase quantity and refresh expiry/selling price.
+            if ($stock_result->num_rows > 0) {
                 $row_stock = $stock_result->fetch_assoc();
                 $new_qty = (int)$row_stock['quantity'] + $quantity;
 
@@ -110,9 +111,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 $update_stock->execute();
                 $update_stock->close();
             } else {
-                // New batch: create a new stock row with expiry date.
-                $resS = $conn->query("SELECT MAX(CAST(SUBSTRING(stock_id,2) AS UNSIGNED)) AS max_id FROM stock");
-                $rowS = $resS->fetch_assoc();
+                // new stock
+                $qS = $conn->query("SELECT MAX(CAST(SUBSTRING(stock_id,2) AS UNSIGNED)) AS max_id FROM stock");
+                $rowS = $qS->fetch_assoc();
                 $numS = ($rowS['max_id'] !== NULL) ? ((int)$rowS['max_id'] + 1) : 1;
                 $stock_id = "S" . str_pad((string)$numS, 3, "0", STR_PAD_LEFT);
 
@@ -121,22 +122,22 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 $insert_stock->execute();
                 $insert_stock->close();
             }
-
             $check_stock->close();
         }
 
-        // Final update of purchase total after all detail rows.
+        // update purchase total
         $stmt3 = $conn->prepare("UPDATE purchase SET total_amount=? WHERE purchase_id=?");
         $stmt3->bind_param("ds", $total_amount, $purchase_id);
         $stmt3->execute();
         $stmt3->close();
 
-        if(empty($error)){
-            $message = "Purchase successful. ID: $purchase_id | Total Rs " . number_format($total_amount, 2);
+        if (empty($error)) {
+            $message = "Purchase added. ID: $purchase_id | Total Rs " . number_format($total_amount, 2);
         }
     }
 }
 
+// get vendors
 $vendors = $conn->query("SELECT vendor_id, name FROM vendor ORDER BY name ASC")->fetch_all(MYSQLI_ASSOC);
 
 include __DIR__ . "/../includes/header.php";

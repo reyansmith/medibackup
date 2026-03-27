@@ -1,122 +1,90 @@
 <?php
 
+// start session
 session_start();
+// connect to db
 require_once __DIR__ . "/../config/database.php";
 
-// Only admin should open this page.
+// check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     header("Location: ../auth/login.php");
     exit();
 }
 
-// These variables store page messages and which section is open.
 $message = "";
 $error_message = "";
 $section = (isset($_GET['section']) && $_GET['section'] === "users") ? "users" : "sessions";
 $session_view = (isset($_GET['session_view']) && $_GET['session_view'] === "history") ? "history" : "current";
 $show_create_form = false;
 
-// This part makes an employee inactive instead of deleting the record fully.
+// remove employee (set inactive)
 if (isset($_GET['delete'])) {
     $delete_id = trim($_GET['delete']);
-
     if ($delete_id === "") {
-        $error_message = "Employee ID is missing. Please try again.";
+        $error_message = "Employee ID missing.";
     } else {
         $delete_id = mysqli_real_escape_string($conn, $delete_id);
-
-        // Mark the employee as inactive.
         $sql = "UPDATE employee SET status = 'inactive' WHERE emp_id = '$delete_id' AND status = 'active'";
         mysqli_query($conn, $sql);
-
         if (mysqli_affected_rows($conn) > 0) {
-            // Also close any active login session for that employee.
             $sql = "UPDATE `session` SET logout_time = NOW() WHERE emp_id = '$delete_id' AND logout_time IS NULL";
             mysqli_query($conn, $sql);
-            $message = "Employee removed successfully!";
+            $message = "Employee removed.";
         } else {
-            // Check why the employee was not updated.
             $sql = "SELECT emp_id, status FROM employee WHERE emp_id = '$delete_id' LIMIT 1";
             $result = mysqli_query($conn, $sql);
-
             if ($result && mysqli_num_rows($result) > 0) {
                 $row = mysqli_fetch_assoc($result);
-
                 if (isset($row['status']) && $row['status'] === 'inactive') {
-                    $error_message = "This employee is already inactive.";
+                    $error_message = "Already inactive.";
                 } else {
-                    $error_message = "Could not remove this employee right now. Please try again.";
+                    $error_message = "Could not remove employee.";
                 }
             } else {
-                $error_message = "Employee record was not found.";
+                $error_message = "Employee not found.";
             }
         }
     }
 }
 
-// This part handles creating a new employee login.
+// add new employee
 if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['action'])) {
     if ($_POST['action'] === "create_user") {
-        // Keep the add form open after submit.
         $show_create_form = true;
         $new_id = trim($_POST['new_emp_id'] ?? "");
         $new_username = trim($_POST['new_username'] ?? "");
         $new_email = trim($_POST['new_email'] ?? "");
         $new_password = $_POST['new_password'] ?? "";
-
         if ($new_id === "" || $new_username === "" || $new_email === "" || $new_password === "") {
-            $error_message = "Please fill in all fields before adding an employee.";
+            $error_message = "Fill all fields.";
         } else {
-            // Clean the values before using them in SQL.
             $new_id = mysqli_real_escape_string($conn, $new_id);
             $new_username = mysqli_real_escape_string($conn, $new_username);
             $new_email = mysqli_real_escape_string($conn, $new_email);
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $hashed_password = mysqli_real_escape_string($conn, $hashed_password);
-
-            // Check if the employee ID is already used.
             $sql = "SELECT emp_id FROM employee WHERE emp_id = '$new_id'";
             $result = mysqli_query($conn, $sql);
-
             if ($result && mysqli_num_rows($result) > 0) {
-                $error_message = "That employee ID already exists. Please use a different one.";
+                $error_message = "ID already exists.";
             } else {
-                // Add the new employee record.
                 $sql = "INSERT INTO employee (emp_id, username, email, password) VALUES ('$new_id', '$new_username', '$new_email', '$hashed_password')";
                 if (mysqli_query($conn, $sql)) {
-                    $message = "Employee added successfully.";
+                    $message = "Employee added.";
                 } else {
-                    $error_message = "Could not add the employee. Please check the details and try again.";
+                    $error_message = "Could not add employee.";
                 }
             }
         }
     }
-
 }
 
-// Store login session rows here.
 $session_rows = [];
-
-// Show login history or only current logins based on the selected tab.
 if ($session_view === "history") {
-    $session_sql = "
-        SELECT s.emp_id, e.username, e.status, s.login_time, s.logout_time
-        FROM `session` s
-        LEFT JOIN employee e ON e.emp_id = s.emp_id
-        ORDER BY s.login_time DESC
-    ";
+    $session_sql = "SELECT s.emp_id, e.username, e.status, s.login_time, s.logout_time FROM `session` s LEFT JOIN employee e ON e.emp_id = s.emp_id ORDER BY s.login_time DESC";
 } else {
-    $session_sql = "
-        SELECT s.emp_id, e.username, e.status, s.login_time, s.logout_time
-        FROM `session` s
-        LEFT JOIN employee e ON e.emp_id = s.emp_id
-        WHERE s.logout_time IS NULL
-          AND (e.status = 'active' OR e.status IS NULL)
-        ORDER BY s.login_time DESC
-    ";
+    $session_sql = "SELECT s.emp_id, e.username, e.status, s.login_time, s.logout_time FROM `session` s LEFT JOIN employee e ON e.emp_id = s.emp_id WHERE s.logout_time IS NULL AND (e.status = 'active' OR e.status IS NULL) ORDER BY s.login_time DESC";
 }
-
-// Get the session data from the database.
 $session_query = $conn->query($session_sql);
 if ($session_query) {
     while ($row = mysqli_fetch_assoc($session_query)) {
@@ -124,7 +92,6 @@ if ($session_query) {
     }
 }
 
-// Get active employees for the user table.
 $users = [];
 $users_query = mysqli_query($conn, "SELECT emp_id, username, email FROM employee WHERE status = 'active' ORDER BY username ASC");
 if ($users_query) {

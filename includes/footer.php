@@ -1,10 +1,11 @@
 <?php
+// Set default endpoint for sales data if not set
 $salesDataEndpoint = isset($salesDataEndpoint) ? $salesDataEndpoint : 'dashboard_sales_data.php';
 ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Render sales chart if element exists
 const salesChartEl = document.getElementById('salesChart');
-
 if (salesChartEl) {
     fetch('<?php echo htmlspecialchars($salesDataEndpoint, ENT_QUOTES, 'UTF-8'); ?>')
         .then((res) => {
@@ -21,6 +22,7 @@ if (salesChartEl) {
             const maxSales = salesValues.length ? Math.max(...salesValues) : 0;
             const allZero = salesValues.every((v) => v === 0);
 
+            // Helper for nice y-axis steps
             function niceStep(maxValue) {
                 if (maxValue <= 0) return 100;
                 const rough = maxValue / 5;

@@ -1,24 +1,30 @@
 <?php
 
+
+// Start session and check employee login
 session_start();
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../includes/session_audit.php";
-
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "employee") {
+    // Redirect to login if not employee
     header("Location: ../auth/login.php");
     exit();
 }
-
+// Check session audit
 ensureEmployeeSessionAudit($conn);
 
+// Get employee id from session
 $empId = (string)$_SESSION['id'];
 
+// Initialize dashboard variables
 $todaySales = 0.0;
 $todayBills = 0;
 $todayItemsSold = 0;
 $recentTransactions = [];
 $paymentRows = [];
 
+
+// Get today's sales and bill count
 $todayStmt = $conn->prepare("
     SELECT COALESCE(SUM(total_amount), 0) AS sales_total,
            COUNT(*) AS bill_count
@@ -35,6 +41,8 @@ if ($todayRow) {
 }
 $todayStmt->close();
 
+
+// Get total items sold today
 $itemsStmt = $conn->prepare("
     SELECT COALESCE(SUM(bd.quantity), 0) AS total_items
     FROM bill_details bd
@@ -50,24 +58,28 @@ if ($itemsRow) {
 }
 $itemsStmt->close();
 
+
+// Get today's payment method split
 $paymentStmt = $conn->prepare("
-    SELECT COALESCE(payment_method, 'Unknown') AS payment_method,
-           COUNT(*) AS bill_count,
-           COALESCE(SUM(total_amount), 0) AS total_amount
-    FROM bill
-    WHERE emp_id = ?
-      AND DATE(bill_date) = CURDATE()
-    GROUP BY payment_method
-    ORDER BY total_amount DESC
+        SELECT COALESCE(payment_method, 'Unknown') AS payment_method,
+                     COUNT(*) AS bill_count,
+                     COALESCE(SUM(total_amount), 0) AS total_amount
+        FROM bill
+        WHERE emp_id = ?
+            AND DATE(bill_date) = CURDATE()
+        GROUP BY payment_method
+        ORDER BY total_amount DESC
 ");
 $paymentStmt->bind_param("s", $empId);
 $paymentStmt->execute();
 $paymentRes = $paymentStmt->get_result();
 while ($row = $paymentRes->fetch_assoc()) {
-    $paymentRows[] = $row;
+        $paymentRows[] = $row;
 }
 $paymentStmt->close();
 
+
+// Get 5 most recent bills
 $recentStmt = $conn->prepare("
     SELECT bill_id, bill_date, customer_name, payment_method, total_amount
     FROM bill
@@ -83,6 +95,8 @@ while ($row = $recentRes->fetch_assoc()) {
 }
 $recentStmt->close();
 
+
+// Prepare data for payment chart
 $paymentLabels = [];
 $paymentValues = [];
 foreach ($paymentRows as $row) {
@@ -95,7 +109,9 @@ if (empty($paymentLabels)) {
 }
 
 
+// Set endpoint for sales chart AJAX
 $salesDataEndpoint = 'dashboard_sales_data.php';
+// Include header and sidebar
 include __DIR__ . "/../includes/header.php";
 include __DIR__ . "/../includes/sidebar.php";
 ?>
@@ -251,6 +267,8 @@ include __DIR__ . "/../includes/sidebar.php";
     </div>
 </div>
 
+
+// Include footer
 <?php include __DIR__ . "/../includes/footer.php"; ?>
 
 <script>
