@@ -133,7 +133,7 @@ if ($result) {
         // Show success or error message at the top.
         if ($message) {
             $msg_class = $is_error ? "vendor-message vendor-message-error" : "vendor-message";
-            echo "<p class='" . $msg_class . "'>" . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . "</p>";
+            echo "<p class='" . $msg_class . "'>" . $message . "</p>";
         }
         ?>
 
@@ -184,17 +184,17 @@ if ($result) {
                     } else {
                         foreach ($vendors as $vendor) {
                             // Escape output before printing it.
-                            $vendorId = htmlspecialchars($vendor['vendor_id'], ENT_QUOTES, 'UTF-8');
-                            $vendorName = htmlspecialchars($vendor['name'], ENT_QUOTES, 'UTF-8');
-                            $vendorPhone = htmlspecialchars($vendor['phone'], ENT_QUOTES, 'UTF-8');
-                            $vendorAddress = htmlspecialchars($vendor['address'], ENT_QUOTES, 'UTF-8');
+                            $vendorId = $vendor['vendor_id'];
+                            $vendorName = $vendor['name'];
+                            $vendorPhone = $vendor['phone'];
+                            $vendorAddress = $vendor['address'];
                             echo "<tr>";
                             echo "<td>" . $vendorId . "</td>";
                             echo "<td>" . $vendorName . "</td>";
                             echo "<td>" . $vendorPhone . "</td>";
                             echo "<td>" . $vendorAddress . "</td>";
                             echo "<td><div class='action-wrap'>";
-                            echo "<a class='btn btn-primary btn-sm' href='vendors.php?edit=" . urlencode($vendor['vendor_id']) . "'>Edit</a>";
+                            echo "<a class='btn btn-primary btn-sm' href='vendors.php?edit=" . $vendor['vendor_id'] . "'>Edit</a>";
                             // Small remove form for each row.
                             echo "<form method='POST' class='vendor-inline-form' onsubmit=\"return confirm('Are you sure you want to remove this vendor?');\">";
                             echo "<input type='hidden' name='remove_vendor_id' value='" . $vendorId . "'>";

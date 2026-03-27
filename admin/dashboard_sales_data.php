@@ -9,8 +9,7 @@ require_once __DIR__ . "/../config/database.php";
 // check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     http_response_code(403);
-    header("Content-Type: application/json; charset=UTF-8");
-    echo json_encode(["error" => "Not allowed"]);
+    echo "Not allowed";
     exit();
 }
 
@@ -51,11 +50,11 @@ if ($stmt) {
     $stmt->close();
 }
 
-header("Content-Type: application/json; charset=UTF-8");
-echo json_encode([
-    "labels" => $labels,
-    "values" => $values
-]);
+header("Content-Type: text/plain; charset=UTF-8");
+echo "Labels: ";
+print_r($labels);
+echo "Values: ";
+print_r($values);
 
 
 

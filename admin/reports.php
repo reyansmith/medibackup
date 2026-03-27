@@ -272,7 +272,7 @@ $recentBillStmt->close();
     <div class="topbar">
         <div class="topbar-text">
             <h2>Reports</h2>
-            <p><?php echo htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8'); ?></p>
+            <p><?php echo $rangeLabel; ?></p>
         </div>
         <div class="top-actions">
             <form method="GET" class="reports-filter-form">
@@ -284,7 +284,7 @@ $recentBillStmt->close();
                 </select>
 
                 <?php if ($filterType === 'day') { ?>
-                    <input type="date" name="day" value="<?php echo htmlspecialchars($selectedDay, ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="date" name="day" value="<?php echo $selectedDay; ?>">
                 <?php } elseif ($filterType === 'week') {
     [$weekYear, $weekNumber] = array_pad(explode('-W', $selectedWeek), 2, '');
     $weekYear = ctype_digit($weekYear) ? (int)$weekYear : (int)date('o');
@@ -297,7 +297,7 @@ $recentBillStmt->close();
     $selectedWeek = $weekStart->format('o-\WW');
     $rangeLabel = $weekStart->format('d M') . ' - ' . $weekEnd->format('d M Y');
 } else { ?>
-                    <input type="month" name="month" value="<?php echo htmlspecialchars($selectedMonth, ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="month" name="month" value="<?php echo $selectedMonth; ?>">
                 <?php } ?>
 
                 <button type="submit" class="btn btn-primary btn-sm">Apply</button>

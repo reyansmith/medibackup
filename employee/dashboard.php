@@ -175,8 +175,8 @@ include __DIR__ . "/../includes/sidebar.php";
                                     <tr>
                                         <td><?php echo (string)$txn['bill_id']; ?></td>
                                         <td><?php echo date("d M Y, h:i A", strtotime($txn['bill_date'])); ?></td>
-                                        <td><?php echo htmlspecialchars($txn['customer_name'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars($txn['payment_method'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo $txn['customer_name'] ?: '-'; ?></td>
+                                        <td><?php echo $txn['payment_method'] ?: '-'; ?></td>
                                         <td>&#8377; <?php echo number_format((float)$txn['total_amount'], 2); ?></td>
                                     </tr>
                                 <?php } ?>
@@ -213,9 +213,9 @@ include __DIR__ . "/../includes/sidebar.php";
                         <?php if ($invProducts && $invProducts->num_rows > 0) { ?>
                             <?php while ($row = $invProducts->fetch_assoc()) { ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['medicine_id'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($row['medicine_name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo $row['medicine_id']; ?></td>
+                                    <td><?php echo $row['medicine_name']; ?></td>
+                                    <td><?php echo $row['description']; ?></td>
                                     <td><?php echo (int)$row['total_stock']; ?></td>
                                 </tr>
                             <?php } ?>
@@ -253,7 +253,7 @@ include __DIR__ . "/../includes/sidebar.php";
                             <?php } else { ?>
                                 <?php foreach ($paymentRows as $row) { ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($row['payment_method'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo $row['payment_method']; ?></td>
                                         <td><?php echo (int)$row['bill_count']; ?></td>
                                         <td>&#8377; <?php echo number_format((float)$row['total_amount'], 2); ?></td>
                                     </tr>
@@ -275,8 +275,8 @@ include __DIR__ . "/../includes/sidebar.php";
 (function () {
     if (typeof Chart === 'undefined') return;
 
-    var paymentLabels = <?php echo json_encode($paymentLabels, JSON_UNESCAPED_UNICODE); ?>;
-    var paymentValues = <?php echo json_encode($paymentValues, JSON_NUMERIC_CHECK); ?>;
+    var paymentLabels = <?php echo $paymentLabels ? json_encode($paymentLabels) : '[]'; ?>;
+    var paymentValues = <?php echo $paymentValues ? json_encode($paymentValues) : '[]'; ?>;
     var paymentCanvas = document.getElementById('employeePaymentChart');
 
     if (!paymentCanvas) return;

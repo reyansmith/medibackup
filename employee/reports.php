@@ -209,7 +209,7 @@ include __DIR__ . "/../includes/sidebar.php";
     <div class="topbar">
         <div class="topbar-text">
             <h2>Employee Reports</h2>
-            <p><?php echo htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8'); ?></p>
+            <p><?php echo $rangeLabel; ?></p>
         </div>
         <div class="top-actions">
             <form method="GET" class="reports-filter-form">
@@ -316,7 +316,7 @@ include __DIR__ . "/../includes/sidebar.php";
                         <?php } else { ?>
                             <?php foreach ($paymentRows as $row) { ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['payment_method'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo $row['payment_method']; ?></td>
                                     <td><?php echo (int)$row['bill_count']; ?></td>
                                     <td>&#8377; <?php echo number_format((float)$row['total_amount'], 2); ?></td>
                                 </tr>
@@ -348,7 +348,7 @@ include __DIR__ . "/../includes/sidebar.php";
                         <?php } else { ?>
                             <?php foreach ($monthlyBillingRows as $row) { ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['month_label'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo $row['month_label']; ?></td>
                                     <td><?php echo (int)$row['bill_count']; ?></td>
                                     <td>&#8377; <?php echo number_format((float)$row['sales_total'], 2); ?></td>
                                 </tr>
@@ -382,8 +382,8 @@ include __DIR__ . "/../includes/sidebar.php";
                                 <tr>
                                     <td><?php echo (string)$row['bill_id']; ?></td>
                                     <td><?php echo date("d M Y, h:i A", strtotime($row['bill_date'])); ?></td>
-                                    <td><?php echo htmlspecialchars($row['customer_name'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($row['payment_method'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo $row['customer_name'] ?: '-'; ?></td>
+                                    <td><?php echo $row['payment_method'] ?: '-'; ?></td>
                                     <td>&#8377; <?php echo number_format((float)$row['total_amount'], 2); ?></td>
                                 </tr>
                             <?php } ?>
@@ -403,10 +403,10 @@ include __DIR__ . "/../includes/sidebar.php";
 (function () {
     if (typeof Chart === 'undefined') return;
 
-    var dateLabels = <?php echo json_encode($dateSalesLabels, JSON_UNESCAPED_UNICODE); ?>;
-    var dateValues = <?php echo json_encode($dateSalesValues, JSON_NUMERIC_CHECK); ?>;
-    var paymentLabels = <?php echo json_encode($paymentLabels, JSON_UNESCAPED_UNICODE); ?>;
-    var paymentValues = <?php echo json_encode($paymentValues, JSON_NUMERIC_CHECK); ?>;
+    var dateLabels = <?php echo $dateSalesLabels ? json_encode($dateSalesLabels) : '[]'; ?>;
+    var dateValues = <?php echo $dateSalesValues ? json_encode($dateSalesValues) : '[]'; ?>;
+    var paymentLabels = <?php echo $paymentLabels ? json_encode($paymentLabels) : '[]'; ?>;
+    var paymentValues = <?php echo $paymentValues ? json_encode($paymentValues) : '[]'; ?>;
 
     var moneyFormat = function (value) {
         return 'Rs ' + Number(value || 0).toLocaleString('en-IN', {

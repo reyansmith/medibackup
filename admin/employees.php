@@ -122,7 +122,7 @@ if ($users_query) {
                 <option value="users" <?php echo ($section === "users") ? "selected" : ""; ?>>User Management</option>
             </select>
             <?php if ($section === "sessions") { ?>
-                <input type="hidden" name="session_view" value="<?php echo htmlspecialchars($session_view, ENT_QUOTES, 'UTF-8'); ?>">
+                <input type="hidden" name="session_view" value="<?php echo $session_view; ?>">
             <?php } ?>
         </form>
 
@@ -196,9 +196,9 @@ if ($users_query) {
                 <form method="POST" class="employees-user-card">
                     <input type="hidden" name="action" value="create_user">
                     <h4 class="employees-user-title">Add Employee</h4>
-                    <input type="text" name="new_emp_id" placeholder="Employee ID" value="<?php echo htmlspecialchars($_POST['new_emp_id'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required class="employees-user-input">
-                    <input type="text" name="new_username" placeholder="Username" value="<?php echo htmlspecialchars($_POST['new_username'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required class="employees-user-input">
-                    <input type="email" name="new_email" placeholder="Email" value="<?php echo htmlspecialchars($_POST['new_email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required class="employees-user-input">
+                    <input type="text" name="new_emp_id" placeholder="Employee ID" value="<?php echo $_POST['new_emp_id'] ?? ''; ?>" required class="employees-user-input">
+                    <input type="text" name="new_username" placeholder="Username" value="<?php echo $_POST['new_username'] ?? ''; ?>" required class="employees-user-input">
+                    <input type="email" name="new_email" placeholder="Email" value="<?php echo $_POST['new_email'] ?? ''; ?>" required class="employees-user-input">
                     <input type="password" name="new_password" placeholder="Password" required class="employees-user-input">
                     <button type="submit" class="employees-user-btn">Save Employee</button>
                 </form>
