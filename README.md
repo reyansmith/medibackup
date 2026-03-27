@@ -1,73 +1,84 @@
-# MediVault 2nd - Medical Inventory & Billing System
+# Mannath Medicals
 
-A web-based inventory and billing system for pharmacies and medical stores built with PHP and MySQL.
-
-## Quick Start
-
-### Setup
-1. Extract to `C:\xampp\htdocs\medivault2nd`
-2. Create database: `CREATE DATABASE medivault_db;`
-3. Update `config/database.php` with your MySQL credentials
-4. Start Apache and MySQL in XAMPP
-5. Open `http://localhost/medivault2nd`
-
-### Default Login
-- **Admin**: admin / password
-- **Employee**: employee / password
+A web-based pharmacy management system built with PHP and MySQL for handling core day-to-day operations such as inventory, purchases, vendors, billing, and reporting.
 
 ## Features
 
-- **Stock Management**: Track inventory with batch numbers and expiry dates
-- **Billing**: Create invoices and generate bills
-- **Purchase Orders**: Manage vendor purchases
-- **Employee Management**: Add and manage employees
-- **Reports**: Sales, inventory, and employee performance reports
-- **Dashboard**: Real-time metrics and alerts
-
-## User Roles
-
-**Admin**
+- Role-based access for administrators and employees
 - Inventory management
-- Purchase orders
-- Vendor management
-- Employee management
-- All reports
-
-**Employee**
-- Create invoices
-- View personal sales
-- Generate reports
-
-## Project Structure
-
-```
-medivault2nd/
-├── admin/          # Admin features
-├── employee/       # Employee features
-├── auth/           # Login/logout
-├── config/         # Database config
-├── includes/       # Page templates
-└── assets/css/     # Styling
-```
+- Vendor and purchase management
+- Billing workflow for employees
+- Dashboard and reporting modules
+- Session-based authentication
 
 ## Tech Stack
 
-- PHP 7.2+
+- PHP
 - MySQL / MariaDB
-- HTML5, CSS3, JavaScript
+- HTML, CSS, JavaScript
 - Chart.js
 
-## Database Tables
+## Project Structure
 
-- **employee**: User accounts and roles
-- **product**: Medicine information
-- **stock**: Inventory tracking
-- **bill**: Customer invoices
-- **purchase**: Vendor purchases
-- **vendor**: Supplier information
+```text
+medibackup/
+├── admin/       # Admin modules
+├── assets/      # Styles and images
+├── auth/        # Login and logout
+├── config/      # Database configuration
+├── employee/    # Employee modules
+├── includes/    # Shared layout files
+├── index.php
+└── README.md
+```
 
-## Requirements
+## Getting Started
 
-- XAMPP or similar (Apache + PHP + MySQL)
-- Modern web browser
-- 10GB disk space (recommended)
+1. Clone or copy the project into your XAMPP `htdocs` directory:
+
+   ```text
+   C:\xampp\htdocs\reyan\medibackup
+   ```
+
+2. Start `Apache` and `MySQL` from XAMPP.
+
+3. Create the database:
+
+   ```sql
+   CREATE DATABASE medivault_db;
+   ```
+
+4. Update database credentials in `config/database.php` if required.
+
+5. Open the project in your browser:
+
+   ```text
+   http://localhost/reyan/medibackup
+   ```
+
+## Application Modules
+
+### Admin
+
+- Dashboard
+- Inventory
+- Purchases
+- Vendors
+- Reports
+- Employees
+
+### Employee
+
+- Dashboard
+- Billing
+- Reports
+
+## Notes
+
+- The application entry point is `index.php`, which redirects to the login page.
+- Authentication is handled through `auth/login.php`.
+- The project expects a MySQL database named `medivault_db`.
+
+## License
+
+This project is intended for internal or private use unless a separate license is added.

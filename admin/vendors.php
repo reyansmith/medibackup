@@ -153,10 +153,10 @@ if ($result) {
             <form method="POST" class="vendor-edit-form">
                 <h3 class="vendor-edit-title">Edit Vendor</h3>
                 <div class="vendor-form-row">
-                    <input type="text" name="vendor_id" value="<?php echo $edit_vendor['vendor_id']; ?>" readonly class="vendor-input">
-                    <input type="text" name="name" value="<?php echo $edit_vendor['name']; ?>" required class="vendor-input">
-                    <input type="text" name="phone" value="<?php echo $edit_vendor['phone']; ?>" maxlength="10" pattern="\d{10}" title="Enter exactly 10 digits" class="vendor-input" required>
-                    <input type="text" name="address" value="<?php echo $edit_vendor['address']; ?>" class="vendor-input">
+                    <input type="text" name="vendor_id" value="<?php echo htmlspecialchars($edit_vendor['vendor_id'], ENT_QUOTES, 'UTF-8'); ?>" readonly class="vendor-input">
+                    <input type="text" name="name" value="<?php echo htmlspecialchars($edit_vendor['name'], ENT_QUOTES, 'UTF-8'); ?>" required class="vendor-input">
+                    <input type="text" name="phone" value="<?php echo htmlspecialchars($edit_vendor['phone'], ENT_QUOTES, 'UTF-8'); ?>" maxlength="10" pattern="\d{10}" title="Enter exactly 10 digits" class="vendor-input" required>
+                    <input type="text" name="address" value="<?php echo htmlspecialchars($edit_vendor['address'], ENT_QUOTES, 'UTF-8'); ?>" class="vendor-input">
                     <button type="submit" name="update_vendor" class="btn btn-primary">Update Vendor</button>
                     <a href="vendors.php" class="btn btn-secondary vendor-cancel-btn">Cancel</a>
                 </div>
@@ -181,16 +181,20 @@ if ($result) {
                         echo "<tr><td colspan='5' class='inv-empty-row'>No vendors found.</td></tr>";
                     } else {
                         foreach ($vendors as $vendor) {
+                            $vendorId = htmlspecialchars($vendor['vendor_id'], ENT_QUOTES, 'UTF-8');
+                            $vendorName = htmlspecialchars($vendor['name'], ENT_QUOTES, 'UTF-8');
+                            $vendorPhone = htmlspecialchars($vendor['phone'], ENT_QUOTES, 'UTF-8');
+                            $vendorAddress = htmlspecialchars($vendor['address'], ENT_QUOTES, 'UTF-8');
                             echo "<tr>";
-                            echo "<td>" . $vendor['vendor_id'] . "</td>";
-                            echo "<td>" . $vendor['name'] . "</td>";
-                            echo "<td>" . $vendor['phone'] . "</td>";
-                            echo "<td>" . $vendor['address'] . "</td>";
+                            echo "<td>" . $vendorId . "</td>";
+                            echo "<td>" . $vendorName . "</td>";
+                            echo "<td>" . $vendorPhone . "</td>";
+                            echo "<td>" . $vendorAddress . "</td>";
                             echo "<td><div class='action-wrap'>";
                             echo "<a class='btn btn-primary btn-sm' href='vendors.php?edit=" . urlencode($vendor['vendor_id']) . "'>Edit</a>";
                             // Remove Vendor Form
                             echo "<form method='POST' class='vendor-inline-form' onsubmit=\"return confirm('Are you sure you want to remove this vendor?');\">";
-                            echo "<input type='hidden' name='remove_vendor_id' value='" . $vendor['vendor_id'] . "'>";
+                            echo "<input type='hidden' name='remove_vendor_id' value='" . $vendorId . "'>";
                             echo "<button type='submit' name='remove_vendor' class='btn btn-danger btn-sm'>Remove</button>";
                             echo "</form>";
                             echo "</div></td>";

@@ -80,133 +80,198 @@ if (isset($_POST['login']))
     box-sizing: border-box;
 }
 
+:root {
+    --bg: #111b2d;
+    --bg-top: #16233a;
+    --card: #ffffff;
+    --card-soft: #f8fafc;
+    --text: #0b1324;
+    --muted: #6b7280;
+    --line: #dbe3ee;
+    --accent: #2f6fed;
+    --accent-hover: #2459c7;
+    --shadow: 0 28px 70px rgba(4, 11, 24, 0.32);
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #0f172a 0%, #1a2744 100%);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background:
+        radial-gradient(circle at top center, rgba(78, 120, 255, 0.08), transparent 24%),
+        linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 32px 24px;
+    color: var(--text);
 }
 
 .login-container {
+    display: flex;
     width: 100%;
-    max-width: 420px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    padding: 50px 40px;
-    animation: slideIn 0.4s ease-out;
+    max-width: 940px;
+    min-height: 560px;
+    background: var(--card);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.login-image-side {
+    width: 38%;
+    background:
+        linear-gradient(180deg, #f7faff 0%, #edf3fb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    border-right: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.logo-frame {
+    width: 100%;
+    max-width: 300px;
+}
+
+.logo-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.login-form-side {
+    flex: 1;
+    padding: 64px 56px;
+    background: var(--card);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .login-header {
-    text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 36px;
 }
 
 .login-header h1 {
-    font-size: 26px;
+    font-size: 38px;
     font-weight: 700;
-    color: #111827;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
-}
-
-.login-header p {
-    font-size: 13px;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: -0.04em;
 }
 
 .form-box {
     width: 100%;
+    max-width: 420px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .form-box label {
     display: block;
     margin-bottom: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
+    font-size: 11px;
+    font-weight: 700;
+    color: #425066;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.14em;
 }
 
 input {
     width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #111827;
-    background: #ffffff;
-    transition: all 0.2s ease;
+    padding: 16px 17px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--card-soft);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 input::placeholder {
-    color: #9ca3af;
+    color: #99a5b5;
 }
 
 input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    background: #f8faff;
+    border-color: rgba(47, 111, 237, 0.42);
+    box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.1);
+    background: #ffffff;
 }
 
 button {
     width: 100%;
-    padding: 12px;
-    background: #3b82f6;
+    padding: 16px;
+    background: var(--accent);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 14px;
     cursor: pointer;
     font-weight: 700;
     font-size: 14px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: all 0.3s ease;
-    margin-top: 16px;
+    letter-spacing: 0.18em;
+    transition: background 0.2s ease;
+    margin-top: 22px;
 }
 
 button:hover {
-    background: #2563eb;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    transform: translateY(-1px);
+    background: var(--accent-hover);
 }
 
 button:active {
     transform: translateY(0);
 }
 
-/* Error Message */
 .error-message {
-    background: #fee2e2;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    padding: 12px 14px;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    border-radius: 12px;
+    padding: 13px 14px;
     color: #991b1b;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     margin-bottom: 20px;
-    text-align: center;
+}
+
+@media (max-width: 920px) {
+    .login-container {
+        max-width: 480px;
+        display: block;
+    }
+
+    .login-image-side {
+        display: none;
+    }
+
+    .login-form-side {
+        padding: 44px 32px;
+    }
+
+    .login-header h1 {
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 520px) {
+    body {
+        padding: 18px;
+    }
+
+    .login-container {
+        border-radius: 20px;
+    }
+
+    .login-form-side {
+        padding: 36px 22px 30px;
+    }
+
+    .login-header h1 {
+        font-size: 28px;
+    }
 }
 
 </style>
@@ -215,35 +280,41 @@ button:active {
 <body>
 
 <div class="login-container">
-
-    <div class="login-header">
-        <h1>Mannath Medicals</h1>
-        <p>Login to Your Account</p>
+    <div class="login-image-side">
+        <div class="logo-frame">
+            <img src="../assets/medilogo.png" alt="Mannath Medicals">
+        </div>
     </div>
 
-    <?php if (isset($login_error) && $login_error): ?>
-    <div class="error-message"><?php echo htmlspecialchars($login_error_message ?? "Invalid Details", ENT_QUOTES, 'UTF-8'); ?></div>
-    <?php endif; ?>
+    <div class="login-form-side">
+        <div class="login-header">
+            <h1>Mannath Medicals</h1>
+        </div>
 
-    <div class="form-box">
-        <form method="POST">
-            <div class="form-group">
-                <label for="id">User ID</label>
-                <input type="text" id="id" name="id" placeholder="Enter your ID" required>
-            </div>
+        <?php if (isset($login_error) && $login_error): ?>
+        <div class="error-message"><?php echo htmlspecialchars($login_error_message ?? "Invalid Details", ENT_QUOTES, 'UTF-8'); ?></div>
+        <?php endif; ?>
 
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Enter your username" required>
-            </div>
+        <div class="form-box">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="id">User ID</label>
+                    <input type="text" id="id" name="id" placeholder="Enter your ID" value="<?php echo htmlspecialchars($_POST['id'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-            </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" value="<?php echo htmlspecialchars($_POST['username'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
 
-            <button type="submit" name="login">Login</button>
-        </form>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" name="login">Login</button>
+            </form>
+        </div>
     </div>
 
 </div>
