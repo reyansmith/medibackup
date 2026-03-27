@@ -60,7 +60,6 @@ include __DIR__ . "/../includes/sidebar.php";
             </thead>
             <tbody>
                 <?php
-// easy note: keep logic same, only code reading made simple.
                 if(empty($purchases)){
                     echo "<tr><td colspan='4' class='inv-empty-row'>No purchases found.</td></tr>";
                 } else {

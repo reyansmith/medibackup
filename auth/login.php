@@ -3,17 +3,20 @@
 session_start();
 require_once __DIR__ . "/../config/database.php";
 
+// Run login check only when the form is submitted.
 if (isset($_POST['login']))
 {
+    // Read and clean form values.
     $id = trim((string)($_POST['id'] ?? ''));
     $username = trim((string)($_POST['username'] ?? ''));
     $password = (string)($_POST['password'] ?? '');
-    $login_error_message = "Invalid Details";
+    $login_error_message = "Please check your ID, username, and password.";
 
+    // Escape input before using it in queries.
     $id = mysqli_real_escape_string($conn, $id);
     $username = mysqli_real_escape_string($conn, $username);
 
-    // CHECK ADMIN
+    // First check if the user is an admin.
     $sql = "SELECT * FROM admin WHERE admin_id='$id' AND username='$username'";
     $admin_query = mysqli_query($conn, $sql);
 
@@ -33,7 +36,7 @@ if (isset($_POST['login']))
         }
     }
 
-    // CHECK EMPLOYEE
+    // If not admin, check if the user is an employee.
     $sql = "SELECT * FROM employee WHERE emp_id='$id' AND username='$username' LIMIT 1";
     $emp_query = mysqli_query($conn, $sql);
 
@@ -43,14 +46,14 @@ if (isset($_POST['login']))
 
         if (isset($row['status']) && $row['status'] !== 'active') {
             $login_error = true;
-            $login_error_message = "Access Denied";
+            $login_error_message = "Your account is inactive. Please contact the admin.";
         } elseif (password_verify($password, $row['password']))
         {
             $_SESSION['role'] = "employee";
             $_SESSION['id'] = $row['emp_id'];
             $_SESSION['username'] = $row['username'];
 
-            // Save login session
+            // Save employee login time in the session table.
             $loginSessionId = "SES" . date("ymdHis") . rand(1000, 9999);
             $_SESSION['login_session_id'] = $loginSessionId;
 
@@ -64,6 +67,7 @@ if (isset($_POST['login']))
         }
     }
 
+    // If nothing matched, show the login error.
     $login_error = true;
 }
 ?>
@@ -280,12 +284,14 @@ button:active {
 <body>
 
 <div class="login-container">
+    <!-- Left side logo area -->
     <div class="login-image-side">
         <div class="logo-frame">
             <img src="../assets/medilogo.png" alt="Mannath Medicals">
         </div>
     </div>
 
+    <!-- Right side login form -->
     <div class="login-form-side">
         <div class="login-header">
             <h1>Mannath Medicals</h1>
@@ -297,21 +303,25 @@ button:active {
 
         <div class="form-box">
             <form method="POST">
+                <!-- User ID input -->
                 <div class="form-group">
                     <label for="id">User ID</label>
                     <input type="text" id="id" name="id" placeholder="Enter your ID" value="<?php echo htmlspecialchars($_POST['id'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
                 </div>
 
+                <!-- Username input -->
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" placeholder="Enter your username" value="<?php echo htmlspecialchars($_POST['username'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
                 </div>
 
+                <!-- Password input -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 </div>
 
+                <!-- Login button -->
                 <button type="submit" name="login">Login</button>
             </form>
         </div>

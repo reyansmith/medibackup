@@ -513,7 +513,6 @@ function stock_status($expiryDate, $quantity) {
                     <?php if ($stockCount > 0) { ?>
                         <?php while ($s = $stocks->fetch_assoc()) { ?>
                             <?php
-// easy note: keep logic same, only code reading made simple.
                                 $status = stock_status($s['expiry_date'], $s['quantity']);
                                 $isExpired = $status === "Expired";
                             ?>

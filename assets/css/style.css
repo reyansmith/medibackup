@@ -1674,11 +1674,21 @@ table thead th {
   box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.15);
 }
 
+.employees-users-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 14px;
+}
+
 .employees-user-grid {
+  display: none;
+  margin-bottom: 18px;
+}
+
+.employees-user-grid.is-open {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
-  margin-bottom: 18px;
 }
 
 .employees-user-card {

@@ -138,7 +138,6 @@ if (salesChartEl) {
 </script>
 
 <script>
-// easy note: ask confirm before logout link open
 (function () {
     var logoutLinks = document.querySelectorAll('a[href$="logout.php"]');
     if (!logoutLinks || logoutLinks.length === 0) return;

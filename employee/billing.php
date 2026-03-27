@@ -142,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $allowedPayments = ["Cash", "UPI", "Card"];
 
     if ($customer_name === '' || strlen($customer_name) > 100) {
-        $error = "Enter a valid customer name (1-100 characters).";
+        $error = "Enter a valid customer name";
     } elseif (!preg_match('/^\d{10}$/', $customer_contact)) {
         $error = "Enter a valid 10-digit customer contact number.";
     } elseif (!in_array($payment_method, $allowedPayments, true)) {
@@ -159,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $quantityText = $row['quantity'];
 
             if ($medicineId === '') {
-                $error = "Select a medicine for item {$rowNo}.";
+                $error = "Select a medicine for billing.";
                 break;
             }
 
@@ -169,7 +169,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             if (!ctype_digit($quantityText) || (int)$quantityText <= 0 || (int)$quantityText > 10000) {
-                $error = "Quantity in item {$rowNo} must be a number between 1 and 10000.";
+                $error = "quantity must be greater than 0";
                 break;
             }
 
