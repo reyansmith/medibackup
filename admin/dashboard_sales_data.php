@@ -50,11 +50,15 @@ if ($stmt) {
     $stmt->close();
 }
 
-header("Content-Type: text/plain; charset=UTF-8");
 echo "Labels: ";
 print_r($labels);
 echo "Values: ";
 print_r($values);
+header("Content-Type: application/json; charset=UTF-8");
+echo json_encode([
+    "labels" => $labels,
+    "values" => $values
+]);
 
 
 
