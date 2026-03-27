@@ -111,7 +111,7 @@ if (empty($paymentLabels)) {
 
 // Set endpoint for sales chart AJAX
 $salesDataEndpoint = 'dashboard_sales_data.php';
-// Include header and sidebar
+
 include __DIR__ . "/../includes/header.php";
 include __DIR__ . "/../includes/sidebar.php";
 ?>
