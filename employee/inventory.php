@@ -135,7 +135,6 @@ function stock_status($expiryDate, $quantity) {
 ?>
 
 
-// Include header and sidebar
 <?php include __DIR__ . "/../includes/header.php"; ?>
 <?php include __DIR__ . "/../includes/sidebar.php"; ?>
 
@@ -279,5 +278,5 @@ function stock_status($expiryDate, $quantity) {
 </div>
 
 
-// Include footer
+
 <?php include __DIR__ . "/../includes/footer.php"; ?>

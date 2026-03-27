@@ -396,7 +396,7 @@ include __DIR__ . "/../includes/sidebar.php";
 </div>
 
 
-// Include footer
+
 <?php include __DIR__ . "/../includes/footer.php"; ?>
 
 <script>
