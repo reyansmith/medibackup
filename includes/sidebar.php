@@ -28,6 +28,7 @@ if ($loggedRoleRaw === 'employee') {
     $navItems = [
         ['file' => 'dashboard.php', 'icon' => 'fas fa-chart-line', 'label' => 'Dashboard'],
         ['file' => 'billing.php', 'icon' => 'fas fa-file-invoice-dollar', 'label' => 'Billing'],
+        ['file' => 'inventory.php', 'icon' => 'fas fa-pills', 'label' => 'Inventory'],
         ['file' => 'reports.php', 'icon' => 'fas fa-chart-bar', 'label' => 'Reports'],
     ];
 } else {
