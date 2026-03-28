@@ -302,6 +302,17 @@ $recentBillStmt->close();
 
                 <button type="submit" class="btn btn-primary btn-sm">Apply</button>
             </form>
+            <?php 
+                $reportParams = "range=" . urlencode($filterType);
+                if ($filterType === 'day') {
+                    $reportParams .= "&day=" . urlencode($selectedDay);
+                } elseif ($filterType === 'week') {
+                    $reportParams .= "&week=" . urlencode($selectedWeek);
+                } elseif ($filterType === 'month') {
+                    $reportParams .= "&month=" . urlencode($selectedMonth);
+                }
+            ?>
+            <a href="generate_report.php?<?php echo htmlspecialchars($reportParams); ?>" class="btn btn-success btn-sm" target="_blank" rel="noopener">Generate Report</a>
             <a href="../auth/logout.php" class="logout-btn">Logout</a>
         </div>
     </div>

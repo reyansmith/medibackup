@@ -16,17 +16,39 @@ if (!in_array($filterType, $allowedRanges, true)) {
 }
 
 $selectedDay = $_GET['day'] ?? date('Y-m-d');
+$selectedWeek = $_GET['week'] ?? date('o-\WW');
 $selectedMonth = $_GET['month'] ?? date('Y-m');
 
 if ($filterType === 'day') {
     $startDate = $selectedDay;
     $endDate = $selectedDay;
     $rangeLabel = date('d M Y', strtotime($selectedDay));
+} elseif ($filterType === 'week') {
+    [$weekYear, $weekNumber] = array_pad(explode('-W', $selectedWeek), 2, '');
+    $weekYear = ctype_digit($weekYear) ? (int)$weekYear : (int)date('o');
+    $weekNumber = ctype_digit($weekNumber) ? (int)$weekNumber : (int)date('W');
+
+    $weekStart = (new DateTimeImmutable())->setISODate($weekYear, $weekNumber, 1);
+    $weekEnd = $weekStart->modify('+6 days');
+    $startDate = $weekStart->format('Y-m-d');
+    $endDate = $weekEnd->format('Y-m-d');
+    $selectedWeek = $weekStart->format('o-\WW');
+    $rangeLabel = $weekStart->format('d M') . ' - ' . $weekEnd->format('d M Y');
 } else {
     $startDate = $selectedMonth . '-01';
     $endDate = date('Y-m-t', strtotime($startDate));
     $rangeLabel = date('F Y', strtotime($startDate));
 }
+
+$backParams = "range=" . urlencode($filterType);
+if ($filterType === 'day') {
+    $backParams .= "&day=" . urlencode($selectedDay);
+} elseif ($filterType === 'week') {
+    $backParams .= "&week=" . urlencode($selectedWeek);
+} else {
+    $backParams .= "&month=" . urlencode($selectedMonth);
+}
+$backUrl = 'reports.php?' . $backParams;
 
 // Helper functions for common database queries
 function fetchTotal($conn, $query, $start, $end) {
@@ -329,7 +351,7 @@ $paymentData = fetchResults($conn, "
 
             body {
                 background: white;
-                padding: 15mm;
+                padding: 10mm;
             }
 
             .report-container {
@@ -341,6 +363,32 @@ $paymentData = fetchResults($conn, "
 
             .bill-actions {
                 display: none;
+            }
+
+            .invoice-head,
+            .invoice-subhead,
+            .invoice-card,
+            .section-title,
+            .invoice-table,
+            .invoice-table tr,
+            .no-data {
+                page-break-inside: avoid;
+                break-inside: avoid-page;
+            }
+
+            .section-title {
+                margin-top: 28px;
+                page-break-after: avoid;
+                break-after: avoid-page;
+            }
+
+            .invoice-table {
+                overflow: visible;
+                margin-bottom: 18px;
+            }
+
+            .invoice-table thead {
+                display: table-header-group;
             }
 
             .invoice-table th {
@@ -509,7 +557,7 @@ $paymentData = fetchResults($conn, "
 
         <div class="bill-actions">
             <button type="button" class="btn btn-primary" onclick="window.print()">Print Report</button>
-            <button type="button" class="btn btn-secondary" onclick="window.history.back()">Back</button>
+            <a href="<?php echo htmlspecialchars($backUrl); ?>" class="btn btn-secondary">Back</a>
         </div>
     </div>
 </body>

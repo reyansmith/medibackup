@@ -186,48 +186,6 @@ include __DIR__ . "/../includes/sidebar.php";
                 </div>
             </div>
 
-            <!-- Inventory Overview Section -->
-            <div class="box">
-                <h3>Inventory Overview</h3>
-                <?php
-                // Fetch product inventory summary
-                $invProducts = $conn->query("
-                    SELECT p.medicine_id, p.medicine_name, p.description, IFNULL(SUM(s.quantity),0) AS total_stock
-                    FROM product p
-                    LEFT JOIN stock s ON s.medicine_id=p.medicine_id
-                    GROUP BY p.medicine_id
-                    ORDER BY p.medicine_id ASC
-                ");
-                ?>
-                <div class="table-wrap">
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Total Stock</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php if ($invProducts && $invProducts->num_rows > 0) { ?>
-                            <?php while ($row = $invProducts->fetch_assoc()) { ?>
-                                <tr>
-                                    <td><?php echo $row['medicine_id']; ?></td>
-                                    <td><?php echo $row['medicine_name']; ?></td>
-                                    <td><?php echo $row['description']; ?></td>
-                                    <td><?php echo (int)$row['total_stock']; ?></td>
-                                </tr>
-                            <?php } ?>
-                        <?php } else { ?>
-                            <tr>
-                                <td colspan="4">No inventory records found.</td>
-                            </tr>
-                        <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
 
         <div class="employee-dashboard-side">
