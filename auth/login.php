@@ -294,7 +294,7 @@ button:active {
     <!-- Right side login form -->
     <div class="login-form-side">
         <div class="login-header">
-            <h1>Mannath Medicals</h1>
+            <h1>Medivault</h1>
         </div>
 
         <?php if (isset($login_error) && $login_error): ?>
