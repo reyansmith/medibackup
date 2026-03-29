@@ -205,7 +205,7 @@ include __DIR__ . "/../includes/sidebar.php";
                             <tr>
                                 <td><input type="text" name="medicine_name[]" required></td>
                                 <td><input type="text" name="description[]" required></td>
-                                <td><input type="text" value="<?php echo $loggedAdminName; ?>" readonly></td>
+                                <td><input type="text" value="<?php echo htmlspecialchars($adminName, ENT_QUOTES, 'UTF-8'); ?>" readonly></td>
                                 <td><input type="text" name="batch_no[]" required></td>
                                 <td><input type="date" name="expiry_date[]" required></td>
                                 <td><input type="number" name="quantity[]" min="1" required></td>
