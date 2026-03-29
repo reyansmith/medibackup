@@ -102,11 +102,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    // delete stock (only if expired)
+    // delete stock (only if expired or out of stock)
     if ($action === "delete_stock") {
         $id = isset($_POST['stock_id']) ? trim($_POST['stock_id']) : "";
 
-        $checkStmt = $conn->prepare("SELECT expiry_date FROM stock WHERE stock_id=?");
+        $checkStmt = $conn->prepare("SELECT expiry_date, quantity FROM stock WHERE stock_id=?");
         $checkStmt->bind_param("s", $id);
         $checkStmt->execute();
         $checkResult = $checkStmt->get_result();
@@ -116,15 +116,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!$stockRow) {
             $msg = "Stock not found.";
             $msgType = "error";
-        } elseif (strtotime($stockRow['expiry_date']) >= strtotime(date('Y-m-d'))) {
-            $msg = "Only expired stock can be deleted.";
-            $msgType = "error";
         } else {
-            $delStmt = $conn->prepare("DELETE FROM stock WHERE stock_id=?");
-            $delStmt->bind_param("s", $id);
-            $delStmt->execute();
-            $delStmt->close();
-            $msg = "Expired stock deleted.";
+            $isExpired = strtotime($stockRow['expiry_date']) < strtotime(date('Y-m-d'));
+            $isOutOfStock = (int)$stockRow['quantity'] <= 0;
+
+            if (!$isExpired && !$isOutOfStock) {
+                $msg = "Only expired or out-of-stock stock can be deleted.";
+                $msgType = "error";
+            } else {
+                $delStmt = $conn->prepare("DELETE FROM stock WHERE stock_id=?");
+                $delStmt->bind_param("s", $id);
+                $delStmt->execute();
+                $delStmt->close();
+                $msg = $isExpired ? "Expired stock deleted." : "Out-of-stock stock deleted.";
+            }
         }
     }
 }
@@ -214,7 +219,7 @@ if ($stockStatusFilter === "expired") {
     // Low stock list excludes expired items.
     $stockConditions[] = "s.expiry_date >= CURDATE()";
     $stockConditions[] = "s.quantity > 0";
-    $stockConditions[] = "s.quantity <= 10";
+    $stockConditions[] = "s.quantity < 10";
 } elseif ($stockStatusFilter === "in_stock") {
     $stockConditions[] = "s.expiry_date >= CURDATE()";
     $stockConditions[] = "s.quantity > 10";
@@ -282,7 +287,7 @@ function stock_status($expiryDate, $quantity) {
     if ((int)$quantity <= 0) {
         return "Out of Stock";
     }
-    if ((int)$quantity <= 10) {
+    if ((int)$quantity < 10) {
         return "Low Stock";
     }
     return "In Stock";
@@ -514,6 +519,7 @@ function stock_status($expiryDate, $quantity) {
                             <?php
                                 $status = stock_status($s['expiry_date'], $s['quantity']);
                                 $isExpired = $status === "Expired";
+                                $isOutOfStock = $status === "Out of Stock";
                             ?>
                             <tr>
                                 <td><?php echo $s['stock_id']; ?></td>
@@ -526,14 +532,14 @@ function stock_status($expiryDate, $quantity) {
                                 <td class="inv-action-cell">
                                     <div class="action-wrap inv-action-wrap">
                                         <a class="btn btn-sm inv-edit-btn" href="inventory.php?section=stock&edit_stock=<?php echo urlencode($s['stock_id']); ?><?php echo $stockFilterQuery; ?>">Edit</a>
-                                        <?php if ($isExpired) { ?>
-                                            <form method="post" onsubmit="return confirm('Delete this expired stock?');">
+                                        <?php if ($isExpired || $isOutOfStock) { ?>
+                                            <form method="post" onsubmit="return confirm('<?php echo $isExpired ? 'Delete this expired stock?' : 'Delete this out-of-stock entry?'; ?>');">
                                                 <input type="hidden" name="action" value="delete_stock">
                                                 <input type="hidden" name="stock_id" value="<?php echo $s['stock_id']; ?>">
                                                 <button class="btn btn-sm inv-delete-btn">Delete</button>
                                             </form>
                                         <?php } else { ?>
-                                            <span class="status-note">Expired only</span>
+                                            <span class="status-note">Expired or Out of Stock only</span>
                                         <?php } ?>
                                     </div>
                                 </td>

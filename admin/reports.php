@@ -59,6 +59,9 @@ $billCount = 0;
 $avgBill = 0.0;
 $purchaseTotal = 0.0;
 $purchaseCount = 0;
+$profitAmount = 0.0;
+$profitLabel = "No Profit No Loss";
+$profitColor = "#6b7280";
 $lowStockCount = 0;
 $expiredStockCount = 0;
 $outStockCount = 0;
@@ -94,6 +97,16 @@ if ($purchaseRow) {
     $purchaseCount = (int)$purchaseRow['purchase_count'];
 }
 $purchaseStmt->close();
+
+// Calculate profit or loss using revenue and purchase total.
+$profitAmount = $salesTotal - $purchaseTotal;
+if ($profitAmount > 0) {
+    $profitLabel = "Profit";
+    $profitColor = "#16a34a";
+} elseif ($profitAmount < 0) {
+    $profitLabel = "Loss";
+    $profitColor = "#dc2626";
+}
 
 $stockStmt = $conn->prepare("
     SELECT
@@ -332,6 +345,20 @@ $recentBillStmt->close();
             <h4>Purchase Entries</h4>
             <h2><?php echo (int)$purchaseCount; ?></h2>
         </div>
+    </div>
+
+    <div class="box">
+        <h3>Profit and Loss</h3>
+        <div class="reports-alerts">
+            <span class="report-chip chip-muted">Total Revenue: Rs <?php echo number_format($salesTotal, 2); ?></span>
+            <span class="report-chip chip-muted">Total Purchases: Rs <?php echo number_format($purchaseTotal, 2); ?></span>
+            <span class="report-chip" style="color:#fff; background: <?php echo htmlspecialchars($profitColor, ENT_QUOTES, 'UTF-8'); ?>;">
+                <?php echo $profitLabel; ?>: Rs <?php echo number_format(abs($profitAmount), 2); ?>
+            </span>
+        </div>
+        <?php if ($profitAmount == 0.0) { ?>
+            <p style="margin-top:12px; color:#6b7280;">No Profit No Loss</p>
+        <?php } ?>
     </div>
 
     <div class="reports-grid">

@@ -77,6 +77,16 @@ function fetchResults($conn, $query, $start, $end) {
 $salesTotal = fetchTotal($conn, "SELECT COALESCE(SUM(total_amount), 0) AS total FROM bill WHERE DATE(bill_date) BETWEEN ? AND ?", $startDate, $endDate);
 $purchaseTotal = fetchTotal($conn, "SELECT COALESCE(SUM(total_amount), 0) AS total FROM purchase WHERE DATE(purchase_date) BETWEEN ? AND ?", $startDate, $endDate);
 $profit = $salesTotal - $purchaseTotal;
+$purchaseCount = (int) fetchTotal($conn, "SELECT COUNT(*) AS total FROM purchase WHERE DATE(purchase_date) BETWEEN ? AND ?", $startDate, $endDate);
+$profitLabel = "No Profit No Loss";
+$profitColor = "#6b7280";
+if ($profit > 0) {
+    $profitLabel = "Profit";
+    $profitColor = "#16a34a";
+} elseif ($profit < 0) {
+    $profitLabel = "Loss";
+    $profitColor = "#dc2626";
+}
 
 // Get detailed reports
 $vendorData = fetchResults($conn, "
@@ -209,6 +219,12 @@ $paymentData = fetchResults($conn, "
             font-size: 20px;
             font-weight: 700;
             color: #1e3a8a;
+            margin-top: 8px;
+        }
+
+        .profit-value {
+            font-size: 20px;
+            font-weight: 700;
             margin-top: 8px;
         }
 
@@ -445,14 +461,22 @@ $paymentData = fetchResults($conn, "
             </div>
         </div>
 
-        <div class="invoice-subhead">
+                <div class="invoice-subhead">
             <div class="invoice-card financial">
                 <h4>Revenue</h4>
-                <p>₹ <?php echo number_format($salesTotal, 2); ?></p>
+                <p>&#8377; <?php echo number_format($salesTotal, 2); ?></p>
             </div>
             <div class="invoice-card financial">
                 <h4>Total Purchase</h4>
-                <p>₹ <?php echo number_format($purchaseTotal, 2); ?></p>
+                <p>&#8377; <?php echo number_format($purchaseTotal, 2); ?></p>
+            </div>
+            <div class="invoice-card financial">
+                <h4>Purchase Entries</h4>
+                <p><?php echo $purchaseCount; ?></p>
+            </div>
+            <div class="invoice-card financial">
+                <h4><?php echo $profitLabel; ?></h4>
+                <p class="profit-value" style="color: <?php echo htmlspecialchars($profitColor, ENT_QUOTES, 'UTF-8'); ?>;">&#8377; <?php echo number_format(abs($profit), 2); ?></p>
             </div>
         </div>
 
@@ -563,3 +587,4 @@ $paymentData = fetchResults($conn, "
 </body>
 
 </html>
+

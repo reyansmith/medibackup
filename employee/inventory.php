@@ -94,7 +94,7 @@ if ($stockStatusFilter === "expired") {
 } elseif ($stockStatusFilter === "low_stock") {
     $stockConditions[] = "s.expiry_date >= CURDATE()";
     $stockConditions[] = "s.quantity > 0";
-    $stockConditions[] = "s.quantity <= 10";
+    $stockConditions[] = "s.quantity < 10";
 } elseif ($stockStatusFilter === "in_stock") {
     $stockConditions[] = "s.expiry_date >= CURDATE()";
     $stockConditions[] = "s.quantity > 10";
@@ -127,7 +127,7 @@ function stock_status($expiryDate, $quantity) {
     if ((int)$quantity <= 0) {
         return "Out of Stock";
     }
-    if ((int)$quantity <= 10) {
+    if ((int)$quantity < 10) {
         return "Low Stock";
     }
     return "In Stock";
