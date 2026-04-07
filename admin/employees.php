@@ -22,7 +22,7 @@ $show_create_form = false;
 closeSessionsAfterDailyCutoff($conn);
 
 // remove employee (set inactive)
-if (isset($_GET['delete'])) {
+if ($_SERVER['REQUEST_METHOD'] === "GET" && isset($_GET['delete'])) {
     $delete_id = trim($_GET['delete']);
     if ($delete_id === "") {
         $error_message = "Employee ID missing.";
@@ -67,16 +67,62 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['action'])) {
             $new_email = mysqli_real_escape_string($conn, $new_email);
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $hashed_password = mysqli_real_escape_string($conn, $hashed_password);
-            $sql = "SELECT emp_id FROM employee WHERE emp_id = '$new_id'";
-            $result = mysqli_query($conn, $sql);
-            if ($result && mysqli_num_rows($result) > 0) {
-                $error_message = "ID already exists.";
-            } else {
-                $sql = "INSERT INTO employee (emp_id, username, email, password) VALUES ('$new_id', '$new_username', '$new_email', '$hashed_password')";
-                if (mysqli_query($conn, $sql)) {
-                    $message = "Employee added.";
+            // First check by employee ID so duplicate IDs do not crash the insert.
+            $sql = "SELECT emp_id, status FROM employee WHERE emp_id = '$new_id' LIMIT 1";
+            $id_result = mysqli_query($conn, $sql);
+            if ($id_result && mysqli_num_rows($id_result) > 0) {
+                $existing_id_user = mysqli_fetch_assoc($id_result);
+                if (isset($existing_id_user['status']) && $existing_id_user['status'] === 'inactive') {
+                    // Reactivate the old employee record with the same ID.
+                    $sql = "UPDATE employee
+                            SET username = '$new_username',
+                                email = '$new_email',
+                                password = '$hashed_password',
+                                status = 'active'
+                            WHERE emp_id = '$new_id'";
+                    if (mysqli_query($conn, $sql)) {
+                        $message = "Employee added.";
+                        $show_create_form = false;
+                    } else {
+                        $error_message = "Could not reactivate employee.";
+                    }
                 } else {
-                    $error_message = "Could not add employee.";
+                    $error_message = "Employee ID already exists.";
+                }
+            } else {
+                // Then check by username so duplicate usernames do not crash the insert.
+                $sql = "SELECT emp_id, status FROM employee WHERE username = '$new_username' LIMIT 1";
+                $result = mysqli_query($conn, $sql);
+                if ($result && mysqli_num_rows($result) > 0) {
+                    $existing_user = mysqli_fetch_assoc($result);
+                    if (isset($existing_user['status']) && $existing_user['status'] === 'inactive') {
+                        // Reactivate the old employee record instead of inserting a new one.
+                        $existing_emp_id = mysqli_real_escape_string($conn, $existing_user['emp_id']);
+                        $sql = "UPDATE employee
+                                SET emp_id = '$new_id',
+                                    username = '$new_username',
+                                    email = '$new_email',
+                                    password = '$hashed_password',
+                                    status = 'active'
+                                WHERE emp_id = '$existing_emp_id'";
+                        if (mysqli_query($conn, $sql)) {
+                            $message = "Employee added.";
+                            $show_create_form = false;
+                        } else {
+                            $error_message = "Could not reactivate employee.";
+                        }
+                    } else {
+                        $error_message = "Employee already exists.";
+                    }
+                } else {
+                    // Username does not exist, so create a new active employee.
+                    $sql = "INSERT INTO employee (emp_id, username, email, password) VALUES ('$new_id', '$new_username', '$new_email', '$hashed_password')";
+                    if (mysqli_query($conn, $sql)) {
+                        $message = "Employee added.";
+                        $show_create_form = false;
+                    } else {
+                        $error_message = "Could not add employee.";
+                    }
                 }
             }
         }
