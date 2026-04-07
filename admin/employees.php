@@ -47,7 +47,7 @@ if (isset($_GET['delete'])) {
     }
 }
 
-// add new employee
+// add new employee from create form in user management section
 if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['action'])) {
     if ($_POST['action'] === "create_user") {
         $show_create_form = true;
