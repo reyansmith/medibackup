@@ -155,6 +155,41 @@ if (salesChartEl) {
 })();
 </script>
 
+<?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'employee') { ?>
+<script>
+(function () {
+    // Skip auto logout when the page is leaving because of normal navigation.
+    var skipAutoLogout = false;
+
+    document.addEventListener('click', function (event) {
+        var link = event.target.closest('a');
+        if (!link) return;
+
+        if (link.target && link.target !== '_self') return;
+        if (link.hasAttribute('download')) return;
+
+        skipAutoLogout = true;
+    }, true);
+
+    document.addEventListener('submit', function () {
+        skipAutoLogout = true;
+    }, true);
+
+    window.addEventListener('keydown', function (event) {
+        if (event.key === 'F5' || ((event.ctrlKey || event.metaKey) && (event.key === 'r' || event.key === 'R'))) {
+            skipAutoLogout = true;
+        }
+    });
+
+    window.addEventListener('pagehide', function () {
+        // Try to close the employee session when the tab/browser is closed.
+        if (skipAutoLogout || !navigator.sendBeacon) return;
+        navigator.sendBeacon('../auth/auto_logout.php');
+    });
+})();
+</script>
+<?php } ?>
+
 </div>
 </body>
 </html>

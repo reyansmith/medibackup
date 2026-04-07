@@ -10,6 +10,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== "employee") {
     header("Location: ../auth/login.php");
     exit();
 }
+// Enforce tab-close and 10:30 PM session rules.
+enforceEmployeeSessionRules($conn);
 // Check session audit
 ensureEmployeeSessionAudit($conn);
 

@@ -11,7 +11,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== "employee") {
 // connect to db
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../includes/session_audit.php";
-// check session
+// Enforce tab-close and 10:30 PM session rules.
+enforceEmployeeSessionRules($conn);
+// Keep one session audit row available for this employee login.
 ensureEmployeeSessionAudit($conn);
 
 $bill_generated = false;

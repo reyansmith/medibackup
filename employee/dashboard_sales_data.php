@@ -11,6 +11,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== "employee") {
     exit();
 }
 
+// Stop chart requests too if the employee session was auto-closed.
+enforceEmployeeSessionRules($conn, true);
 ensureEmployeeSessionAudit($conn);
 
 $empId = (string)$_SESSION['id'];

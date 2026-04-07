@@ -2,6 +2,7 @@
 
 session_start();
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../includes/session_audit.php";
 
 // Run login check only when the form is submitted.
 if (isset($_POST['login']))
@@ -53,12 +54,14 @@ if (isset($_POST['login']))
             $_SESSION['id'] = $row['emp_id'];
             $_SESSION['username'] = $row['username'];
 
-            // Save employee login time in the session table.
+            // Create one fresh open session for this login.
             $loginSessionId = "SES" . date("ymdHis") . rand(1000, 9999);
             $_SESSION['login_session_id'] = $loginSessionId;
 
             $emp_id = mysqli_real_escape_string($conn, $row['emp_id']);
             $loginSessionId = mysqli_real_escape_string($conn, $loginSessionId);
+            // Close any older open session rows before inserting the new one.
+            closeOpenEmployeeSessions($conn, $row['emp_id']);
             $sql = "INSERT INTO `session` (session_id, emp_id, login_time, logout_time) VALUES ('$loginSessionId', '$emp_id', NOW(), NULL)";
             mysqli_query($conn, $sql);
 

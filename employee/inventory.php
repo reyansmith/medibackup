@@ -4,11 +4,16 @@
 // Start session and check employee login
 session_start();
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../includes/session_audit.php";
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'employee') {
     // Redirect to login if not employee
     header("Location: ../auth/login.php");
     exit();
 }
+// Enforce tab-close and 10:30 PM session rules.
+enforceEmployeeSessionRules($conn);
+// Keep one session audit row available for this employee login.
+ensureEmployeeSessionAudit($conn);
 
 
 // Section: products or stock

@@ -4,6 +4,7 @@
 session_start();
 // connect to db
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../includes/session_audit.php";
 
 // check admin login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
@@ -16,6 +17,9 @@ $error_message = "";
 $section = (isset($_GET['section']) && $_GET['section'] === "users") ? "users" : "sessions";
 $session_view = (isset($_GET['session_view']) && $_GET['session_view'] === "history") ? "history" : "current";
 $show_create_form = false;
+
+// Close leftover open sessions after the daily 10:30 PM cutoff.
+closeSessionsAfterDailyCutoff($conn);
 
 // remove employee (set inactive)
 if (isset($_GET['delete'])) {
@@ -83,7 +87,23 @@ $session_rows = [];
 if ($session_view === "history") {
     $session_sql = "SELECT s.emp_id, e.username, e.status, s.login_time, s.logout_time FROM `session` s LEFT JOIN employee e ON e.emp_id = s.emp_id ORDER BY s.login_time DESC";
 } else {
-    $session_sql = "SELECT s.emp_id, e.username, e.status, s.login_time, s.logout_time FROM `session` s LEFT JOIN employee e ON e.emp_id = s.emp_id WHERE s.logout_time IS NULL AND (e.status = 'active' OR e.status IS NULL) ORDER BY s.login_time DESC";
+    // Show only the latest open session row for each employee.
+    $session_sql = "
+        SELECT s.emp_id, e.username, e.status, s.login_time, s.logout_time
+        FROM `session` s
+        INNER JOIN (
+            SELECT emp_id, MAX(login_time) AS latest_login_time
+            FROM `session`
+            WHERE logout_time IS NULL
+            GROUP BY emp_id
+        ) latest_session
+            ON latest_session.emp_id = s.emp_id
+           AND latest_session.latest_login_time = s.login_time
+        LEFT JOIN employee e ON e.emp_id = s.emp_id
+        WHERE s.logout_time IS NULL
+          AND (e.status = 'active' OR e.status IS NULL)
+        ORDER BY s.login_time DESC
+    ";
 }
 $session_query = $conn->query($session_sql);
 if ($session_query) {
