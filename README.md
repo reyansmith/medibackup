@@ -1,6 +1,6 @@
 # Mannath Medicals
 
-A web-based pharmacy management system built with PHP and MySQL for handling core day-to-day operations such as inventory, purchases, vendors, billing, and reporting.
+A web-based pharmacy management system built with PHP HTML CSS JS and MySQL for handling core day-to-day operations such as inventory, purchases, vendors, billing, and reporting.
 
 ## Features
 
@@ -37,7 +37,7 @@ medibackup/
 1. Clone or copy the project into your XAMPP `htdocs` directory:
 
    ```text
-   C:\xampp\htdocs\reyan\medibackup
+   C:\xampp\htdocs\medibackup
    ```
 
 2. Start `Apache` and `MySQL` from XAMPP.
@@ -79,6 +79,4 @@ medibackup/
 - Authentication is handled through `auth/login.php`.
 - The project expects a MySQL database named `medivault_db`.
 
-## License
 
-This project is intended for internal or private use unless a separate license is added.
