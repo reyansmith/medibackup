@@ -12,7 +12,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== "admin") {
     exit();
 }
 
-// get purchases
+// get purchases with total amount
 $sql = "SELECT p.purchase_id, p.vendor_id, p.purchase_date, IFNULL(SUM(pd.quantity * pd.cost_price),0) AS total_amount FROM purchase p LEFT JOIN purchase_details pd ON pd.purchase_id = p.purchase_id GROUP BY p.purchase_id, p.vendor_id, p.purchase_date ORDER BY p.purchase_date DESC, p.purchase_id DESC";
 $result = $conn->query($sql);
 $purchases = [];

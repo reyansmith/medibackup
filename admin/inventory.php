@@ -206,7 +206,7 @@ $stockOrderColumnMap = array(
 );
 $stockOrderColumn = $stockOrderColumnMap[$stockSortBy];
 $stockOrderDirection = "ASC";
-
+//for expiry and quantity 
 $stockConditions = array();
 if ($stockStatusFilter === "expired") {
     // Expired stock means expiry date is before today.

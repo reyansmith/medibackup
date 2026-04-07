@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
 
-            // check if medicine exists
+            // check if medicine exists or new medicine 
             $check_product = $conn->prepare("SELECT medicine_id FROM product WHERE medicine_name=?");
             $check_product->bind_param("s", $med_name);
             $check_product->execute();
